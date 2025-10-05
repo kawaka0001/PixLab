@@ -8,8 +8,15 @@ interface FilterControlsProps {
 export function FilterControls({ onFilterApply, disabled }: FilterControlsProps) {
   const [blurRadius, setBlurRadius] = useState(5)
 
+  // Handle slider change - immediate real-time processing
+  const handleBlurChange = (value: number) => {
+    setBlurRadius(value)
+    // Apply filter immediately (processing flag in App.tsx prevents queue buildup)
+    onFilterApply('blur', { radius: value })
+  }
+
   return (
-    <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 mt-4">
+    <div className="bg-primary-light rounded-lg p-6 border border-[#333333] mt-4">
       <h2 className="text-xl font-semibold mb-4">Filters</h2>
 
       <div className="space-y-4">
@@ -17,32 +24,27 @@ export function FilterControls({ onFilterApply, disabled }: FilterControlsProps)
         <button
           onClick={() => onFilterApply('grayscale')}
           disabled={disabled}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors"
+          className="w-full bg-accent hover:bg-accent-dark disabled:bg-[#3A3A3A] disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-lg hover:shadow-accent/50"
         >
           Grayscale
         </button>
 
-        {/* Blur */}
+        {/* Blur with Real-time Preview */}
         <div>
           <label className="block text-sm text-gray-300 mb-2">
-            Blur Radius: {blurRadius}
+            Blur Radius: {blurRadius.toFixed(1)}
+            <span className="ml-2 text-xs text-gray-500">(Real-time ⚡)</span>
           </label>
           <input
             type="range"
-            min="1"
+            min="0.5"
             max="20"
+            step="0.5"
             value={blurRadius}
-            onChange={(e) => setBlurRadius(Number(e.target.value))}
-            className="w-full"
+            onChange={(e) => handleBlurChange(Number(e.target.value))}
+            className="w-full accent-accent"
             disabled={disabled}
           />
-          <button
-            onClick={() => onFilterApply('blur', { radius: blurRadius })}
-            disabled={disabled}
-            className="w-full mt-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors"
-          >
-            Apply Blur
-          </button>
         </div>
       </div>
     </div>

@@ -2,13 +2,13 @@ use photon_rs::PhotonImage;
 use photon_rs::conv::gaussian_blur;
 
 /// Apply Gaussian blur to image data
-pub fn apply(image_data: &[u8], radius: f32) -> Result<Vec<u8>, String> {
+pub fn apply(image_data: &[u8], width: u32, height: u32, radius: f32) -> Result<Vec<u8>, String> {
     if radius <= 0.0 {
         return Err("Radius must be positive".to_string());
     }
 
-    // Create PhotonImage from raw bytes
-    let mut img = PhotonImage::new_from_byteslice(image_data.to_vec());
+    // Create PhotonImage from raw RGBA pixels
+    let mut img = PhotonImage::new(image_data.to_vec(), width, height);
 
     // Apply Gaussian blur
     gaussian_blur(&mut img, radius as i32);

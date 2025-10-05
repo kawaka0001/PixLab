@@ -266,12 +266,16 @@ function takeFromExternrefTable0(idx) {
 /**
  * Convert image to grayscale
  * @param {Uint8Array} image_data
+ * @param {number} width
+ * @param {number} height
  * @returns {Uint8Array}
  */
-export function apply_grayscale(image_data) {
+export function apply_grayscale(image_data, width, height) {
     const ptr0 = passArray8ToWasm0(image_data, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.apply_grayscale(ptr0, len0);
+    _assertNum(width);
+    _assertNum(height);
+    const ret = wasm.apply_grayscale(ptr0, len0, width, height);
     if (ret[3]) {
         throw takeFromExternrefTable0(ret[2]);
     }
@@ -283,13 +287,17 @@ export function apply_grayscale(image_data) {
 /**
  * Apply Gaussian blur
  * @param {Uint8Array} image_data
+ * @param {number} width
+ * @param {number} height
  * @param {number} radius
  * @returns {Uint8Array}
  */
-export function apply_blur(image_data, radius) {
+export function apply_blur(image_data, width, height, radius) {
     const ptr0 = passArray8ToWasm0(image_data, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.apply_blur(ptr0, len0, radius);
+    _assertNum(width);
+    _assertNum(height);
+    const ret = wasm.apply_blur(ptr0, len0, width, height, radius);
     if (ret[3]) {
         throw takeFromExternrefTable0(ret[2]);
     }

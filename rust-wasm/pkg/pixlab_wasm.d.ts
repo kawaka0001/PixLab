@@ -12,11 +12,11 @@ export function greet(name: string): string;
 /**
  * Convert image to grayscale
  */
-export function apply_grayscale(image_data: Uint8Array): Uint8Array;
+export function apply_grayscale(image_data: Uint8Array, width: number, height: number): Uint8Array;
 /**
  * Apply Gaussian blur
  */
-export function apply_blur(image_data: Uint8Array, radius: number): Uint8Array;
+export function apply_blur(image_data: Uint8Array, width: number, height: number, radius: number): Uint8Array;
 /**
  * ! [temp] Check if WASM is supported.
  */
@@ -2883,8 +2883,8 @@ export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly init: () => void;
   readonly greet: (a: number, b: number) => [number, number];
-  readonly apply_grayscale: (a: number, b: number) => [number, number, number, number];
-  readonly apply_blur: (a: number, b: number, c: number) => [number, number, number, number];
+  readonly apply_grayscale: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+  readonly apply_blur: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
   readonly __wbg_photonimage_free: (a: number, b: number) => void;
   readonly photonimage_new: (a: number, b: number, c: number, d: number) => number;
   readonly photonimage_new_from_base64: (a: number, b: number) => number;

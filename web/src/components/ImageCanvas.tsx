@@ -37,7 +37,7 @@ export function ImageCanvas({ originalImage, processedImage }: ImageCanvasProps)
 
   if (!originalImage) {
     return (
-      <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 flex items-center justify-center min-h-96">
+      <div className="bg-primary-light rounded-lg p-12 border border-[#333333] flex items-center justify-center min-h-96">
         <p className="text-gray-400 text-lg">No image loaded. Upload an image to start editing.</p>
       </div>
     )
@@ -46,9 +46,9 @@ export function ImageCanvas({ originalImage, processedImage }: ImageCanvasProps)
   return (
     <div className="space-y-6">
       {/* Original */}
-      <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+      <div className="bg-primary-light rounded-lg p-4 border border-[#333333]">
         <h3 className="text-lg font-semibold mb-3">Original</h3>
-        <div className="bg-gray-700 rounded p-2 flex justify-center">
+        <div className="bg-[#333333] rounded p-2 flex justify-center">
           <canvas
             ref={originalCanvasRef}
             className="max-w-full h-auto rounded"
@@ -57,9 +57,11 @@ export function ImageCanvas({ originalImage, processedImage }: ImageCanvasProps)
       </div>
 
       {/* Processed */}
-      <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-        <h3 className="text-lg font-semibold mb-3">Processed (WASM)</h3>
-        <div className="bg-gray-700 rounded p-2 flex justify-center">
+      <div className="bg-primary-light rounded-lg p-4 border border-[#333333]">
+        <h3 className="text-lg font-semibold mb-3">
+          <span className="text-accent">Processed</span> (WASM)
+        </h3>
+        <div className="bg-[#333333] rounded p-2 flex justify-center">
           <canvas
             ref={processedCanvasRef}
             className="max-w-full h-auto rounded"

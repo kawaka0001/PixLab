@@ -40,12 +40,12 @@ export function ImageUploader({ onImageLoad }: ImageUploaderProps) {
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+    <div className="bg-primary-light rounded-lg p-6 border border-[#333333]">
       <h2 className="text-xl font-semibold mb-4">Upload Image</h2>
 
       <button
         onClick={() => fileInputRef.current?.click()}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+        className="w-full bg-accent hover:bg-accent-dark text-white font-medium py-3 px-4 rounded-lg transition-colors shadow-lg hover:shadow-accent/50"
       >
         Choose Image
       </button>

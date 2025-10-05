@@ -31,11 +31,11 @@ pub fn greet(name: &str) -> String {
 
 /// Convert image to grayscale
 #[wasm_bindgen]
-pub fn apply_grayscale(image_data: &[u8]) -> Result<Vec<u8>, JsValue> {
+pub fn apply_grayscale(image_data: &[u8], width: u32, height: u32) -> Result<Vec<u8>, JsValue> {
     let start = performance_now();
-    info!("Starting grayscale conversion, size: {} bytes", image_data.len());
+    info!("Starting grayscale conversion, size: {} bytes ({}x{})", image_data.len(), width, height);
 
-    let result = filters::grayscale::apply(image_data)
+    let result = filters::grayscale::apply(image_data, width, height)
         .map_err(|e| JsValue::from_str(&format!("Grayscale error: {}", e)))?;
 
     let elapsed = performance_now() - start;
@@ -46,11 +46,11 @@ pub fn apply_grayscale(image_data: &[u8]) -> Result<Vec<u8>, JsValue> {
 
 /// Apply Gaussian blur
 #[wasm_bindgen]
-pub fn apply_blur(image_data: &[u8], radius: f32) -> Result<Vec<u8>, JsValue> {
+pub fn apply_blur(image_data: &[u8], width: u32, height: u32, radius: f32) -> Result<Vec<u8>, JsValue> {
     let start = performance_now();
-    info!("Starting blur (radius={}), size: {} bytes", radius, image_data.len());
+    info!("Starting blur (radius={}), size: {} bytes ({}x{})", radius, image_data.len(), width, height);
 
-    let result = filters::blur::apply(image_data, radius)
+    let result = filters::blur::apply(image_data, width, height, radius)
         .map_err(|e| JsValue::from_str(&format!("Blur error: {}", e)))?;
 
     let elapsed = performance_now() - start;

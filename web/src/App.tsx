@@ -9,6 +9,7 @@ function App() {
   const { wasmModule, isLoading, error } = useWasm()
   const [image, setImage] = useState<ImageData | null>(null)
   const [processedImage, setProcessedImage] = useState<ImageData | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   useEffect(() => {
     if (wasmModule) {
@@ -43,6 +44,14 @@ function App() {
   const handleFilterApply = async (filterType: string, params?: any) => {
     if (!image || !wasmModule) return
 
+    // Skip if already processing (prevent queue buildup)
+    if (isProcessing) {
+      logger.debug('Filter skipped (already processing)', { filterType })
+      return
+    }
+
+    setIsProcessing(true)
+
     logger.info('Filter apply started', {
       action: 'FILTER_APPLY',
       filterType,
@@ -63,13 +72,14 @@ function App() {
 
       switch (filterType) {
         case 'grayscale':
-          result = wasmModule.apply_grayscale(rawPixels)
+          result = wasmModule.apply_grayscale(rawPixels, image.width, image.height)
           break
         case 'blur':
-          result = wasmModule.apply_blur(rawPixels, params?.radius || 5)
+          result = wasmModule.apply_blur(rawPixels, image.width, image.height, params?.radius || 5)
           break
         default:
           logger.warn('Unknown filter type', { filterType })
+          setIsProcessing(false)
           return
       }
 
@@ -100,32 +110,43 @@ function App() {
           size: image.data.length,
         },
       })
+    } finally {
+      setIsProcessing(false)
     }
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading WASM module... 🔄</div>
+      <div className="min-h-screen bg-primary flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <img src="/logo.svg" alt="PixLab Logo" className="h-24 w-24 animate-pulse" />
+          <div className="text-white text-xl">Loading WASM module... 🔄</div>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-red-500 text-xl">Error loading WASM: {error.message}</div>
+      <div className="min-h-screen bg-primary flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <img src="/logo.svg" alt="PixLab Logo" className="h-24 w-24 opacity-50" />
+          <div className="text-red-500 text-xl">Error loading WASM: {error.message}</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <header className="bg-gray-800 border-b border-gray-700 p-4">
-        <h1 className="text-3xl font-bold">
-          🎨 PixLab
-          <span className="text-sm text-gray-400 ml-3">WebAssembly Image Editor</span>
-        </h1>
+    <div className="min-h-screen bg-primary text-white">
+      <header className="bg-primary-light border-b border-[#333333] p-4">
+        <div className="flex items-center gap-4">
+          <img src="/logo.svg" alt="PixLab Logo" className="h-12 w-12" />
+          <h1 className="text-3xl font-bold">
+            <span className="text-accent">PixLab</span>
+            <span className="text-sm text-gray-400 ml-3">WebAssembly Image Editor</span>
+          </h1>
+        </div>
       </header>
 
       <main className="container mx-auto p-8">
@@ -152,8 +173,8 @@ function App() {
         </div>
       </main>
 
-      <footer className="fixed bottom-0 w-full bg-gray-800 border-t border-gray-700 p-2 text-center text-sm text-gray-400">
-        <p>Built with Rust 🦀 + WebAssembly ⚡ + React ⚛️</p>
+      <footer className="fixed bottom-0 w-full bg-primary-light border-t border-[#333333] p-2 text-center text-sm text-gray-400">
+        <p>Built with <span className="text-accent">Rust 🦀</span> + WebAssembly ⚡ + React ⚛️</p>
       </footer>
     </div>
   )
