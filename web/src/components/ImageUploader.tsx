@@ -24,7 +24,8 @@ export function ImageUploader({ onImageLoad }: ImageUploaderProps) {
         canvas.width = img.width
         canvas.height = img.height
 
-        const ctx = canvas.getContext('2d')
+        // Enable willReadFrequently for better performance with getImageData
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })
         if (!ctx) return
 
         ctx.drawImage(img, 0, 0)

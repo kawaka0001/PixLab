@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface FilterControlsProps {
   onFilterApply: (filterType: string, params?: any) => void
@@ -7,13 +7,24 @@ interface FilterControlsProps {
 
 export function FilterControls({ onFilterApply, disabled }: FilterControlsProps) {
   const [blurRadius, setBlurRadius] = useState(5)
+  const debounceTimerRef = useRef<number | null>(null)
 
-  // Handle slider change - immediate real-time processing
-  const handleBlurChange = (value: number) => {
-    setBlurRadius(value)
-    // Apply filter immediately (processing flag in App.tsx prevents queue buildup)
-    onFilterApply('blur', { radius: value })
-  }
+  // Debounced filter application (150ms) - best practice for smooth UX
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    debounceTimerRef.current = window.setTimeout(() => {
+      onFilterApply('blur', { radius: blurRadius })
+    }, 150)
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [blurRadius, onFilterApply])
 
   return (
     <div className="bg-primary-light rounded-lg p-6 border border-[#333333] mt-4">
@@ -41,7 +52,7 @@ export function FilterControls({ onFilterApply, disabled }: FilterControlsProps)
             max="20"
             step="0.5"
             value={blurRadius}
-            onChange={(e) => handleBlurChange(Number(e.target.value))}
+            onChange={(e) => setBlurRadius(Number(e.target.value))}
             className="w-full accent-accent"
             disabled={disabled}
           />

@@ -66,7 +66,9 @@ function App() {
     const start = performance.now()
 
     try {
-      const rawPixels = new Uint8Array(image.data)
+      // Direct access to image data (avoid unnecessary copy)
+      // ImageData.data is already a Uint8ClampedArray
+      const rawPixels = image.data
 
       let result: Uint8Array
 
