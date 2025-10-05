@@ -67,8 +67,8 @@ function App() {
 
     try {
       // Direct access to image data (avoid unnecessary copy)
-      // ImageData.data is already a Uint8ClampedArray
-      const rawPixels = image.data
+      // ImageData.data is Uint8ClampedArray, convert to Uint8Array for WASM
+      const rawPixels = new Uint8Array(image.data.buffer)
 
       let result: Uint8Array
 
