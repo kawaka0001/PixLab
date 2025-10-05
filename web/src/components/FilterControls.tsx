@@ -35,9 +35,26 @@ export function FilterControls({ filters, onFiltersChange, disabled }: FilterCon
     }, 150)
   }
 
+  const handleReset = () => {
+    onFiltersChange({ grayscale: false, blur: 0, brightness: 0 })
+  }
+
+  const hasActiveFilters = filters.grayscale || filters.blur > 0 || filters.brightness !== 0
+
   return (
     <div className="bg-primary-light rounded-lg p-6 border border-[#333333] mt-4">
-      <h2 className="text-xl font-semibold mb-4">Filters</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Filters</h2>
+        {hasActiveFilters && (
+          <button
+            onClick={handleReset}
+            disabled={disabled}
+            className="text-xs text-accent hover:text-accent-dark disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
+          >
+            Reset All
+          </button>
+        )}
+      </div>
 
       <div className="space-y-4">
         {/* Grayscale */}
@@ -93,6 +110,30 @@ export function FilterControls({ filters, onFiltersChange, disabled }: FilterCon
             <span>Brighter</span>
           </div>
         </div>
+
+        {/* Active Filters Indicator */}
+        {hasActiveFilters && (
+          <div className="pt-4 border-t border-[#333333]">
+            <div className="text-xs text-gray-400 mb-2">Active Filters:</div>
+            <div className="flex flex-wrap gap-2">
+              {filters.grayscale && (
+                <span className="px-2 py-1 bg-accent/20 text-accent text-xs rounded">
+                  Grayscale
+                </span>
+              )}
+              {filters.blur > 0 && (
+                <span className="px-2 py-1 bg-accent/20 text-accent text-xs rounded">
+                  Blur ({filters.blur.toFixed(1)})
+                </span>
+              )}
+              {filters.brightness !== 0 && (
+                <span className="px-2 py-1 bg-accent/20 text-accent text-xs rounded">
+                  Brightness ({filters.brightness > 0 ? '+' : ''}{filters.brightness})
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
