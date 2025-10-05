@@ -4,22 +4,13 @@ import { FilterControls } from './components/FilterControls'
 import { ImageCanvas } from './components/ImageCanvas'
 import { useWasm } from './wasm/useWasm'
 import logger from './utils/logger'
-
-interface FilterState {
-  grayscale: boolean
-  blur: number
-  brightness: number
-}
+import { type FilterState, initialFilterState } from './types/filters'
 
 function App() {
   const { wasmModule, isLoading, error } = useWasm()
   const [image, setImage] = useState<ImageData | null>(null)
   const [processedImage, setProcessedImage] = useState<ImageData | null>(null)
-  const [filters, setFilters] = useState<FilterState>({
-    grayscale: false,
-    blur: 0,
-    brightness: 0,
-  })
+  const [filters, setFilters] = useState<FilterState>(initialFilterState)
 
   useEffect(() => {
     if (wasmModule) {
@@ -60,21 +51,50 @@ function App() {
     try {
       // Start with original image data
       let current = new Uint8Array(image.data.buffer)
+      let currentWidth = image.width
+      let currentHeight = image.height
 
       // Apply filters in pipeline order
       if (filters.grayscale) {
         logger.debug('Applying grayscale filter', { action: 'FILTER_PIPELINE' })
-        current = new Uint8Array(wasmModule.apply_grayscale(current, image.width, image.height))
-      }
-
-      if (filters.blur > 0) {
-        logger.debug('Applying blur filter', { action: 'FILTER_PIPELINE', radius: filters.blur })
-        current = new Uint8Array(wasmModule.apply_blur(current, image.width, image.height, filters.blur))
+        current = new Uint8Array(wasmModule.apply_grayscale(current, currentWidth, currentHeight))
       }
 
       if (filters.brightness !== 0) {
         logger.debug('Applying brightness filter', { action: 'FILTER_PIPELINE', adjustment: filters.brightness })
-        current = new Uint8Array(wasmModule.apply_brightness(current, image.width, image.height, filters.brightness))
+        current = new Uint8Array(wasmModule.apply_brightness(current, currentWidth, currentHeight, filters.brightness))
+      }
+
+      if (filters.flipHorizontal) {
+        logger.debug('Applying horizontal flip', { action: 'FILTER_PIPELINE' })
+        current = new Uint8Array(wasmModule.apply_flip_horizontal(current, currentWidth, currentHeight))
+      }
+
+      if (filters.flipVertical) {
+        logger.debug('Applying vertical flip', { action: 'FILTER_PIPELINE' })
+        current = new Uint8Array(wasmModule.apply_flip_vertical(current, currentWidth, currentHeight))
+      }
+
+      // Rotation (may change image dimensions)
+      if (filters.rotation !== 0) {
+        logger.debug('Applying rotation', { action: 'FILTER_PIPELINE', angle: filters.rotation })
+        if (filters.rotation === 90) {
+          current = new Uint8Array(wasmModule.apply_rotate_90_cw(current, currentWidth, currentHeight))
+          // Swap dimensions for 90° rotation
+          ;[currentWidth, currentHeight] = [currentHeight, currentWidth]
+        } else if (filters.rotation === 180) {
+          current = new Uint8Array(wasmModule.apply_rotate_180(current, currentWidth, currentHeight))
+          // Dimensions stay the same
+        } else if (filters.rotation === 270) {
+          current = new Uint8Array(wasmModule.apply_rotate_270_cw(current, currentWidth, currentHeight))
+          // Swap dimensions for 270° rotation
+          ;[currentWidth, currentHeight] = [currentHeight, currentWidth]
+        }
+      }
+
+      if (filters.blur > 0) {
+        logger.debug('Applying blur filter', { action: 'FILTER_PIPELINE', radius: filters.blur })
+        current = new Uint8Array(wasmModule.apply_blur(current, currentWidth, currentHeight, filters.blur))
       }
 
       const elapsed = performance.now() - start
@@ -84,11 +104,11 @@ function App() {
         duration: elapsed,
       })
 
-      // Create new ImageData from pipeline result
+      // Create new ImageData from pipeline result (with potentially updated dimensions)
       const newImageData = new ImageData(
         new Uint8ClampedArray(current),
-        image.width,
-        image.height
+        currentWidth,
+        currentHeight
       )
 
       setProcessedImage(newImageData)

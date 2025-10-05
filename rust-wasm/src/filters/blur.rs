@@ -33,7 +33,7 @@ mod tests {
             255, 255, 255, 255,
         ];
 
-        let result = apply(&data, 2.0);
+        let result = apply(&data, 2, 2, 2.0);
         assert!(result.is_ok());
         assert_eq!(result.unwrap().len(), data.len());
     }
@@ -41,7 +41,7 @@ mod tests {
     #[test]
     fn test_blur_invalid_radius() {
         let data = vec![255, 0, 0, 255];
-        let result = apply(&data, -1.0);
+        let result = apply(&data, 1, 1, -1.0);
         assert!(result.is_err());
     }
 }

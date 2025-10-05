@@ -1,10 +1,5 @@
 import { useEffect, useRef } from 'react'
-
-interface FilterState {
-  grayscale: boolean
-  blur: number
-  brightness: number
-}
+import { type FilterState, type RotationAngle, initialFilterState } from '../types/filters'
 
 interface FilterControlsProps {
   filters: FilterState
@@ -36,10 +31,16 @@ export function FilterControls({ filters, onFiltersChange, disabled }: FilterCon
   }
 
   const handleReset = () => {
-    onFiltersChange({ grayscale: false, blur: 0, brightness: 0 })
+    onFiltersChange(initialFilterState)
   }
 
-  const hasActiveFilters = filters.grayscale || filters.blur > 0 || filters.brightness !== 0
+  const hasActiveFilters = filters.grayscale || filters.blur > 0 || filters.brightness !== 0 || filters.flipHorizontal || filters.flipVertical || filters.rotation !== 0
+
+  // Handle rotation: increment by 90° (0 -> 90 -> 180 -> 270 -> 0)
+  const handleRotate = () => {
+    const nextRotation = ((filters.rotation + 90) % 360) as RotationAngle
+    onFiltersChange({ ...filters, rotation: nextRotation })
+  }
 
   return (
     <div className="bg-primary-light rounded-lg p-6 border border-[#333333] mt-4">
@@ -111,6 +112,45 @@ export function FilterControls({ filters, onFiltersChange, disabled }: FilterCon
           </div>
         </div>
 
+        {/* Flip Horizontal */}
+        <button
+          onClick={() => onFiltersChange({ ...filters, flipHorizontal: !filters.flipHorizontal })}
+          disabled={disabled}
+          className={`w-full font-medium py-2 px-4 rounded-lg transition-colors shadow-lg ${
+            filters.flipHorizontal
+              ? 'bg-accent-dark text-white'
+              : 'bg-accent hover:bg-accent-dark disabled:bg-[#3A3A3A] disabled:cursor-not-allowed text-white hover:shadow-accent/50'
+          }`}
+        >
+          ↔️ Flip Horizontal {filters.flipHorizontal && '✓'}
+        </button>
+
+        {/* Flip Vertical */}
+        <button
+          onClick={() => onFiltersChange({ ...filters, flipVertical: !filters.flipVertical })}
+          disabled={disabled}
+          className={`w-full font-medium py-2 px-4 rounded-lg transition-colors shadow-lg ${
+            filters.flipVertical
+              ? 'bg-accent-dark text-white'
+              : 'bg-accent hover:bg-accent-dark disabled:bg-[#3A3A3A] disabled:cursor-not-allowed text-white hover:shadow-accent/50'
+          }`}
+        >
+          ↕️ Flip Vertical {filters.flipVertical && '✓'}
+        </button>
+
+        {/* Rotation */}
+        <button
+          onClick={handleRotate}
+          disabled={disabled}
+          className={`w-full font-medium py-2 px-4 rounded-lg transition-colors shadow-lg ${
+            filters.rotation !== 0
+              ? 'bg-accent-dark text-white'
+              : 'bg-accent hover:bg-accent-dark disabled:bg-[#3A3A3A] disabled:cursor-not-allowed text-white hover:shadow-accent/50'
+          }`}
+        >
+          🔄 Rotate {filters.rotation !== 0 && `${filters.rotation}°`}
+        </button>
+
         {/* Active Filters Indicator */}
         {hasActiveFilters && (
           <div className="pt-4 border-t border-[#333333]">
@@ -129,6 +169,21 @@ export function FilterControls({ filters, onFiltersChange, disabled }: FilterCon
               {filters.brightness !== 0 && (
                 <span className="px-2 py-1 bg-accent/20 text-accent text-xs rounded">
                   Brightness ({filters.brightness > 0 ? '+' : ''}{filters.brightness})
+                </span>
+              )}
+              {filters.flipHorizontal && (
+                <span className="px-2 py-1 bg-accent/20 text-accent text-xs rounded">
+                  ↔️ Flip H
+                </span>
+              )}
+              {filters.flipVertical && (
+                <span className="px-2 py-1 bg-accent/20 text-accent text-xs rounded">
+                  ↕️ Flip V
+                </span>
+              )}
+              {filters.rotation !== 0 && (
+                <span className="px-2 py-1 bg-accent/20 text-accent text-xs rounded">
+                  🔄 Rotate {filters.rotation}°
                 </span>
               )}
             </div>

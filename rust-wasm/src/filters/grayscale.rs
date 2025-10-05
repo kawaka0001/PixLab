@@ -29,7 +29,7 @@ mod tests {
             255, 255, 255, 255, // White
         ];
 
-        let result = apply(&data);
+        let result = apply(&data, 2, 2);
         assert!(result.is_ok());
         assert_eq!(result.unwrap().len(), data.len());
     }

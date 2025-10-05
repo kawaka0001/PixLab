@@ -73,6 +73,81 @@ pub fn apply_brightness(image_data: &[u8], width: u32, height: u32, adjustment: 
     Ok(result)
 }
 
+/// Apply horizontal flip (mirror left-right)
+#[wasm_bindgen]
+pub fn apply_flip_horizontal(image_data: &[u8], width: u32, height: u32) -> Result<Vec<u8>, JsValue> {
+    let start = performance_now();
+    info!("Starting horizontal flip, size: {} bytes ({}x{})", image_data.len(), width, height);
+
+    let result = filters::flip::apply_horizontal(image_data, width, height)
+        .map_err(|e| JsValue::from_str(&format!("Horizontal flip error: {}", e)))?;
+
+    let elapsed = performance_now() - start;
+    info!("Horizontal flip completed in {:.2}ms", elapsed);
+
+    Ok(result)
+}
+
+/// Apply vertical flip (mirror top-bottom)
+#[wasm_bindgen]
+pub fn apply_flip_vertical(image_data: &[u8], width: u32, height: u32) -> Result<Vec<u8>, JsValue> {
+    let start = performance_now();
+    info!("Starting vertical flip, size: {} bytes ({}x{})", image_data.len(), width, height);
+
+    let result = filters::flip::apply_vertical(image_data, width, height)
+        .map_err(|e| JsValue::from_str(&format!("Vertical flip error: {}", e)))?;
+
+    let elapsed = performance_now() - start;
+    info!("Vertical flip completed in {:.2}ms", elapsed);
+
+    Ok(result)
+}
+
+/// Rotate image 90 degrees clockwise
+#[wasm_bindgen]
+pub fn apply_rotate_90_cw(image_data: &[u8], width: u32, height: u32) -> Result<Vec<u8>, JsValue> {
+    let start = performance_now();
+    info!("Starting 90° CW rotation, size: {} bytes ({}x{})", image_data.len(), width, height);
+
+    let result = filters::rotate::rotate_90_cw(image_data, width, height)
+        .map_err(|e| JsValue::from_str(&format!("Rotate 90° CW error: {}", e)))?;
+
+    let elapsed = performance_now() - start;
+    info!("90° CW rotation completed in {:.2}ms", elapsed);
+
+    Ok(result)
+}
+
+/// Rotate image 180 degrees
+#[wasm_bindgen]
+pub fn apply_rotate_180(image_data: &[u8], width: u32, height: u32) -> Result<Vec<u8>, JsValue> {
+    let start = performance_now();
+    info!("Starting 180° rotation, size: {} bytes ({}x{})", image_data.len(), width, height);
+
+    let result = filters::rotate::rotate_180(image_data, width, height)
+        .map_err(|e| JsValue::from_str(&format!("Rotate 180° error: {}", e)))?;
+
+    let elapsed = performance_now() - start;
+    info!("180° rotation completed in {:.2}ms", elapsed);
+
+    Ok(result)
+}
+
+/// Rotate image 270 degrees clockwise (90 degrees counter-clockwise)
+#[wasm_bindgen]
+pub fn apply_rotate_270_cw(image_data: &[u8], width: u32, height: u32) -> Result<Vec<u8>, JsValue> {
+    let start = performance_now();
+    info!("Starting 270° CW rotation, size: {} bytes ({}x{})", image_data.len(), width, height);
+
+    let result = filters::rotate::rotate_270_cw(image_data, width, height)
+        .map_err(|e| JsValue::from_str(&format!("Rotate 270° CW error: {}", e)))?;
+
+    let elapsed = performance_now() - start;
+    info!("270° CW rotation completed in {:.2}ms", elapsed);
+
+    Ok(result)
+}
+
 /// Helper to get performance.now()
 fn performance_now() -> f64 {
     window()

@@ -23,6 +23,26 @@ export function apply_blur(image_data: Uint8Array, width: number, height: number
  */
 export function apply_brightness(image_data: Uint8Array, width: number, height: number, adjustment: number): Uint8Array;
 /**
+ * Apply horizontal flip (mirror left-right)
+ */
+export function apply_flip_horizontal(image_data: Uint8Array, width: number, height: number): Uint8Array;
+/**
+ * Apply vertical flip (mirror top-bottom)
+ */
+export function apply_flip_vertical(image_data: Uint8Array, width: number, height: number): Uint8Array;
+/**
+ * Rotate image 90 degrees clockwise
+ */
+export function apply_rotate_90_cw(image_data: Uint8Array, width: number, height: number): Uint8Array;
+/**
+ * Rotate image 180 degrees
+ */
+export function apply_rotate_180(image_data: Uint8Array, width: number, height: number): Uint8Array;
+/**
+ * Rotate image 270 degrees clockwise (90 degrees counter-clockwise)
+ */
+export function apply_rotate_270_cw(image_data: Uint8Array, width: number, height: number): Uint8Array;
+/**
  * ! [temp] Check if WASM is supported.
  */
 export function run(): void;
@@ -2891,6 +2911,11 @@ export interface InitOutput {
   readonly apply_grayscale: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly apply_blur: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly apply_brightness: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly apply_flip_horizontal: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly apply_flip_vertical: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly apply_rotate_90_cw: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly apply_rotate_180: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly apply_rotate_270_cw: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly __wbg_photonimage_free: (a: number, b: number) => void;
   readonly photonimage_new: (a: number, b: number, c: number, d: number) => number;
   readonly photonimage_new_from_byteslice: (a: number, b: number) => number;
