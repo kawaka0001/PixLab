@@ -1,49 +1,39 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
+
+interface FilterState {
+  grayscale: boolean
+  blur: number
+  brightness: number
+}
 
 interface FilterControlsProps {
-  onFilterApply: (filterType: string, params?: any) => void
+  filters: FilterState
+  onFiltersChange: (filters: FilterState) => void
   disabled?: boolean
 }
 
-export function FilterControls({ onFilterApply, disabled }: FilterControlsProps) {
-  const [blurRadius, setBlurRadius] = useState(5)
-  const [brightness, setBrightness] = useState(0)
-  const blurDebounceRef = useRef<number | null>(null)
-  const brightnessDebounceRef = useRef<number | null>(null)
+export function FilterControls({ filters, onFiltersChange, disabled }: FilterControlsProps) {
+  const debounceRef = useRef<number | null>(null)
 
-  // Debounced blur filter (150ms)
+  // Cleanup on unmount
   useEffect(() => {
-    if (blurDebounceRef.current) {
-      clearTimeout(blurDebounceRef.current)
-    }
-
-    blurDebounceRef.current = window.setTimeout(() => {
-      onFilterApply('blur', { radius: blurRadius })
-    }, 150)
-
     return () => {
-      if (blurDebounceRef.current) {
-        clearTimeout(blurDebounceRef.current)
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
       }
     }
-  }, [blurRadius, onFilterApply])
+  }, [])
 
-  // Debounced brightness filter (150ms)
-  useEffect(() => {
-    if (brightnessDebounceRef.current) {
-      clearTimeout(brightnessDebounceRef.current)
+  // Debounced filter updates (150ms)
+  const updateFilter = (key: keyof FilterState, value: number | boolean) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
     }
 
-    brightnessDebounceRef.current = window.setTimeout(() => {
-      onFilterApply('brightness', { adjustment: brightness })
+    debounceRef.current = window.setTimeout(() => {
+      onFiltersChange({ ...filters, [key]: value })
     }, 150)
-
-    return () => {
-      if (brightnessDebounceRef.current) {
-        clearTimeout(brightnessDebounceRef.current)
-      }
-    }
-  }, [brightness, onFilterApply])
+  }
 
   return (
     <div className="bg-primary-light rounded-lg p-6 border border-[#333333] mt-4">
@@ -52,26 +42,30 @@ export function FilterControls({ onFilterApply, disabled }: FilterControlsProps)
       <div className="space-y-4">
         {/* Grayscale */}
         <button
-          onClick={() => onFilterApply('grayscale')}
+          onClick={() => onFiltersChange({ ...filters, grayscale: !filters.grayscale })}
           disabled={disabled}
-          className="w-full bg-accent hover:bg-accent-dark disabled:bg-[#3A3A3A] disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-lg hover:shadow-accent/50"
+          className={`w-full font-medium py-2 px-4 rounded-lg transition-colors shadow-lg ${
+            filters.grayscale
+              ? 'bg-accent-dark text-white'
+              : 'bg-accent hover:bg-accent-dark disabled:bg-[#3A3A3A] disabled:cursor-not-allowed text-white hover:shadow-accent/50'
+          }`}
         >
-          Grayscale
+          Grayscale {filters.grayscale && '✓'}
         </button>
 
         {/* Blur with Real-time Preview */}
         <div>
           <label className="block text-sm text-gray-300 mb-2">
-            Blur Radius: {blurRadius.toFixed(1)}
+            Blur Radius: {filters.blur.toFixed(1)}
             <span className="ml-2 text-xs text-gray-500">(Real-time ⚡)</span>
           </label>
           <input
             type="range"
-            min="0.5"
+            min="0"
             max="20"
             step="0.5"
-            value={blurRadius}
-            onChange={(e) => setBlurRadius(Number(e.target.value))}
+            value={filters.blur}
+            onChange={(e) => updateFilter('blur', Number(e.target.value))}
             className="w-full accent-accent"
             disabled={disabled}
           />
@@ -80,7 +74,7 @@ export function FilterControls({ onFilterApply, disabled }: FilterControlsProps)
         {/* Brightness with Real-time Preview */}
         <div>
           <label className="block text-sm text-gray-300 mb-2">
-            Brightness: {brightness > 0 ? '+' : ''}{brightness.toFixed(0)}
+            Brightness: {filters.brightness > 0 ? '+' : ''}{filters.brightness.toFixed(0)}
             <span className="ml-2 text-xs text-gray-500">(Real-time ⚡)</span>
           </label>
           <input
@@ -88,8 +82,8 @@ export function FilterControls({ onFilterApply, disabled }: FilterControlsProps)
             min="-255"
             max="255"
             step="5"
-            value={brightness}
-            onChange={(e) => setBrightness(Number(e.target.value))}
+            value={filters.brightness}
+            onChange={(e) => updateFilter('brightness', Number(e.target.value))}
             className="w-full accent-accent"
             disabled={disabled}
           />

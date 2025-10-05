@@ -5,11 +5,21 @@ import { ImageCanvas } from './components/ImageCanvas'
 import { useWasm } from './wasm/useWasm'
 import logger from './utils/logger'
 
+interface FilterState {
+  grayscale: boolean
+  blur: number
+  brightness: number
+}
+
 function App() {
   const { wasmModule, isLoading, error } = useWasm()
   const [image, setImage] = useState<ImageData | null>(null)
   const [processedImage, setProcessedImage] = useState<ImageData | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [filters, setFilters] = useState<FilterState>({
+    grayscale: false,
+    blur: 0,
+    brightness: 0,
+  })
 
   useEffect(() => {
     if (wasmModule) {
@@ -41,84 +51,55 @@ function App() {
     setProcessedImage(imageData)
   }
 
-  const handleFilterApply = async (filterType: string, params?: any) => {
+  // Filter Pipeline: Apply multiple filters in sequence
+  useEffect(() => {
     if (!image || !wasmModule) return
-
-    // Skip if already processing (prevent queue buildup)
-    if (isProcessing) {
-      logger.debug('Filter skipped (already processing)', { filterType })
-      return
-    }
-
-    setIsProcessing(true)
-
-    logger.info('Filter apply started', {
-      action: 'FILTER_APPLY',
-      filterType,
-      params,
-      imageInfo: {
-        width: image.width,
-        height: image.height,
-        size: image.data.length,
-      },
-    })
 
     const start = performance.now()
 
     try {
-      // Direct access to image data (avoid unnecessary copy)
-      // ImageData.data is Uint8ClampedArray, convert to Uint8Array for WASM
-      const rawPixels = new Uint8Array(image.data.buffer)
+      // Start with original image data
+      let current = new Uint8Array(image.data.buffer)
 
-      let result: Uint8Array
+      // Apply filters in pipeline order
+      if (filters.grayscale) {
+        logger.debug('Applying grayscale filter', { action: 'FILTER_PIPELINE' })
+        current = new Uint8Array(wasmModule.apply_grayscale(current, image.width, image.height))
+      }
 
-      switch (filterType) {
-        case 'grayscale':
-          result = wasmModule.apply_grayscale(rawPixels, image.width, image.height)
-          break
-        case 'blur':
-          result = wasmModule.apply_blur(rawPixels, image.width, image.height, params?.radius || 5)
-          break
-        case 'brightness':
-          result = wasmModule.apply_brightness(rawPixels, image.width, image.height, params?.adjustment || 0)
-          break
-        default:
-          logger.warn('Unknown filter type', { filterType })
-          setIsProcessing(false)
-          return
+      if (filters.blur > 0) {
+        logger.debug('Applying blur filter', { action: 'FILTER_PIPELINE', radius: filters.blur })
+        current = new Uint8Array(wasmModule.apply_blur(current, image.width, image.height, filters.blur))
+      }
+
+      if (filters.brightness !== 0) {
+        logger.debug('Applying brightness filter', { action: 'FILTER_PIPELINE', adjustment: filters.brightness })
+        current = new Uint8Array(wasmModule.apply_brightness(current, image.width, image.height, filters.brightness))
       }
 
       const elapsed = performance.now() - start
-      logger.info('Filter applied successfully', {
-        action: 'FILTER_COMPLETE',
-        filterType,
+      logger.info('Filter pipeline completed', {
+        action: 'FILTER_PIPELINE_COMPLETE',
+        filters,
         duration: elapsed,
       })
 
-      // Create new ImageData from result
+      // Create new ImageData from pipeline result
       const newImageData = new ImageData(
-        new Uint8ClampedArray(result),
+        new Uint8ClampedArray(current),
         image.width,
         image.height
       )
 
       setProcessedImage(newImageData)
     } catch (err) {
-      logger.error('Filter apply failed', {
-        action: 'FILTER_ERROR',
-        filterType,
-        params,
+      logger.error('Filter pipeline failed', {
+        action: 'FILTER_PIPELINE_ERROR',
+        filters,
         error: err instanceof Error ? err.message : String(err),
-        imageInfo: {
-          width: image.width,
-          height: image.height,
-          size: image.data.length,
-        },
       })
-    } finally {
-      setIsProcessing(false)
     }
-  }
+  }, [image, wasmModule, filters])
 
   if (isLoading) {
     return (
@@ -161,7 +142,8 @@ function App() {
 
           {image && (
             <FilterControls
-              onFilterApply={handleFilterApply}
+              filters={filters}
+              onFiltersChange={setFilters}
               disabled={!wasmModule}
             />
           )}
