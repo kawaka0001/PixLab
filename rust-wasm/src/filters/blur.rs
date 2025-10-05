@@ -8,7 +8,7 @@ pub fn apply(image_data: &[u8], radius: f32) -> Result<Vec<u8>, String> {
     }
 
     // Create PhotonImage from raw bytes
-    let mut img = PhotonImage::new_from_byteslice(image_data);
+    let mut img = PhotonImage::new_from_byteslice(image_data.to_vec());
 
     // Apply Gaussian blur
     gaussian_blur(&mut img, radius as i32);

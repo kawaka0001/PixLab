@@ -12,7 +12,11 @@ function App() {
   useEffect(() => {
     if (wasmModule) {
       console.log('WASM module loaded successfully! 🎉')
-      console.log('Greeting:', wasmModule.greet('Developer'))
+      try {
+        console.log('Greeting:', wasmModule.greet('Developer'))
+      } catch (err) {
+        console.error('Greet error:', err)
+      }
     }
   }, [wasmModule])
 
@@ -33,10 +37,10 @@ function App() {
 
       switch (filterType) {
         case 'grayscale':
-          result = wasmModule.grayscale(rawPixels)
+          result = wasmModule.apply_grayscale(rawPixels)
           break
         case 'blur':
-          result = wasmModule.blur(rawPixels, params?.radius || 5)
+          result = wasmModule.apply_blur(rawPixels, params?.radius || 5)
           break
         default:
           console.warn('Unknown filter:', filterType)

@@ -17,8 +17,7 @@
     "clean": "rm -rf rust-wasm/target rust-wasm/pkg web/dist web/node_modules node_modules"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0",
-    "cargo-watch": "^8.5.3"
+    "concurrently": "^9.1.0"
   },
   "engines": {
     "node": ">=18.0.0"

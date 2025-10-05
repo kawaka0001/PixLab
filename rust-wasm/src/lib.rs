@@ -1,7 +1,7 @@
 mod filters;
 
 use wasm_bindgen::prelude::*;
-use log::{info, debug};
+use log::info;
 use web_sys::window;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global allocator.
@@ -31,7 +31,7 @@ pub fn greet(name: &str) -> String {
 
 /// Convert image to grayscale
 #[wasm_bindgen]
-pub fn grayscale(image_data: &[u8]) -> Result<Vec<u8>, JsValue> {
+pub fn apply_grayscale(image_data: &[u8]) -> Result<Vec<u8>, JsValue> {
     let start = performance_now();
     info!("Starting grayscale conversion, size: {} bytes", image_data.len());
 
@@ -46,7 +46,7 @@ pub fn grayscale(image_data: &[u8]) -> Result<Vec<u8>, JsValue> {
 
 /// Apply Gaussian blur
 #[wasm_bindgen]
-pub fn blur(image_data: &[u8], radius: f32) -> Result<Vec<u8>, JsValue> {
+pub fn apply_blur(image_data: &[u8], radius: f32) -> Result<Vec<u8>, JsValue> {
     let start = performance_now();
     info!("Starting blur (radius={}), size: {} bytes", radius, image_data.len());
 

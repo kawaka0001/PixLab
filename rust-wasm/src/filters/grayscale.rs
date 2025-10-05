@@ -4,7 +4,7 @@ use photon_rs::monochrome::grayscale as photon_grayscale;
 /// Apply grayscale filter to image data
 pub fn apply(image_data: &[u8]) -> Result<Vec<u8>, String> {
     // Create PhotonImage from raw bytes
-    let mut img = PhotonImage::new_from_byteslice(image_data);
+    let mut img = PhotonImage::new_from_byteslice(image_data.to_vec());
 
     // Apply grayscale filter
     photon_grayscale(&mut img);

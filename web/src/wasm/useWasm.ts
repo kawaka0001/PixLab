@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 
 interface WasmModule {
   greet: (name: string) => string
-  grayscale: (imageData: Uint8Array) => Uint8Array
-  blur: (imageData: Uint8Array, radius: number) => Uint8Array
+  apply_grayscale: (imageData: Uint8Array) => Uint8Array
+  apply_blur: (imageData: Uint8Array, radius: number) => Uint8Array
 }
 
 interface UseWasmResult {
@@ -25,13 +25,16 @@ export function useWasm(): UseWasmResult {
         console.log('Loading WASM module...')
 
         // Dynamic import of WASM module
-        // This path will be available after building Rust code
-        const wasm = await import('../../../rust-wasm/pkg/pixlab_wasm.js')
+        // Import both the init function and the module
+        const wasmModule = await import('../../../rust-wasm/pkg/pixlab_wasm.js')
 
-        console.log('WASM module loaded:', wasm)
+        // Initialize WASM (this is crucial!)
+        await wasmModule.default()
+
+        console.log('WASM module initialized successfully!')
 
         if (mounted) {
-          setWasmModule(wasm as unknown as WasmModule)
+          setWasmModule(wasmModule as unknown as WasmModule)
           setIsLoading(false)
         }
       } catch (err) {
