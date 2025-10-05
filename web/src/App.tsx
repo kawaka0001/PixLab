@@ -5,16 +5,29 @@ import { ImageCanvas } from './components/ImageCanvas'
 import { CollaborativeCursors } from './components/CollaborativeCursors'
 import { useWasm } from './wasm/useWasm'
 import { useCollaboration } from './hooks/useCollaboration'
+import { uploadImage, downloadImageAsImageData } from './lib/storage'
 import logger from './utils/logger'
 import { type FilterState, initialFilterState } from './types/filters'
 
 function App() {
   const { wasmModule, isLoading, error } = useWasm()
-  const { roomId, otherCursors, broadcastCursor, isConnected } = useCollaboration()
+  const {
+    roomId,
+    userId: _userId, // Reserved for future use
+    otherCursors,
+    sharedImage,
+    sharedFilters,
+    broadcastCursor,
+    broadcastImage,
+    broadcastFilters,
+    isConnected
+  } = useCollaboration()
   const canvasContainerRef = useRef<HTMLDivElement>(null)
   const [image, setImage] = useState<ImageData | null>(null)
   const [processedImage, setProcessedImage] = useState<ImageData | null>(null)
   const [filters, setFilters] = useState<FilterState>(initialFilterState)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [cropMode, setCropMode] = useState(false)
 
   useEffect(() => {
     if (wasmModule) {
@@ -33,7 +46,13 @@ function App() {
     }
   }, [wasmModule])
 
-  const handleImageLoad = (imageData: ImageData) => {
+  /**
+   * Handle local image upload
+   * - Sets image data locally
+   * - Uploads to Supabase Storage
+   * - Broadcasts to other users in the room
+   */
+  const handleImageLoad = async (imageData: ImageData, file: File) => {
     logger.info('Image uploaded', {
       action: 'IMAGE_UPLOAD',
       imageInfo: {
@@ -44,7 +63,70 @@ function App() {
     })
     setImage(imageData)
     setProcessedImage(imageData)
+
+    // Upload to Supabase Storage and broadcast to room
+    try {
+      setIsUploadingImage(true)
+      const url = await uploadImage(file, roomId)
+      broadcastImage(url, imageData.width, imageData.height)
+      logger.info('Image uploaded to storage and broadcasted', {
+        action: 'IMAGE_BROADCAST',
+        url,
+      })
+    } catch (err) {
+      logger.error('Failed to upload image', {
+        action: 'IMAGE_UPLOAD_ERROR',
+        error: err instanceof Error ? err.message : String(err),
+      })
+    } finally {
+      setIsUploadingImage(false)
+    }
   }
+
+  /**
+   * Sync shared image from other users
+   * Downloads image from Supabase Storage URL and displays it
+   */
+  useEffect(() => {
+    if (!sharedImage) return
+
+    logger.info('Received shared image', {
+      action: 'SHARED_IMAGE_RECEIVED',
+      uploadedBy: sharedImage.uploadedBy,
+      url: sharedImage.url,
+    })
+
+    downloadImageAsImageData(sharedImage.url)
+      .then((imageData) => {
+        setImage(imageData)
+        setProcessedImage(imageData)
+        logger.info('Shared image loaded successfully', {
+          action: 'SHARED_IMAGE_LOADED',
+        })
+      })
+      .catch((err) => {
+        logger.error('Failed to load shared image', {
+          action: 'SHARED_IMAGE_ERROR',
+          error: err instanceof Error ? err.message : String(err),
+        })
+      })
+  }, [sharedImage])
+
+  /**
+   * Sync shared filters from other users
+   * IMPORTANT: Does NOT broadcast to avoid infinite loop
+   * Only manual changes trigger broadcasts
+   */
+  useEffect(() => {
+    if (!sharedFilters) return
+
+    logger.info('Received shared filters', {
+      action: 'SHARED_FILTERS_RECEIVED',
+      filters: sharedFilters,
+    })
+
+    setFilters(sharedFilters)
+  }, [sharedFilters])
 
   // Handle mouse move for cursor broadcasting
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -117,6 +199,15 @@ function App() {
       if (filters.blur > 0) {
         logger.debug('Applying blur filter', { action: 'FILTER_PIPELINE', radius: filters.blur })
         current = new Uint8Array(wasmModule.apply_blur(current, currentWidth, currentHeight, filters.blur))
+      }
+
+      // Crop (applied last, as it changes image dimensions)
+      if (filters.cropArea) {
+        logger.debug('Applying crop', { action: 'FILTER_PIPELINE', cropArea: filters.cropArea })
+        const { x, y, width, height } = filters.cropArea
+        current = new Uint8Array(wasmModule.apply_crop(current, currentWidth, currentHeight, x, y, width, height))
+        currentWidth = width
+        currentHeight = height
       }
 
       const elapsed = performance.now() - start
@@ -212,13 +303,23 @@ function App() {
       <main className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Controls */}
         <div className="w-80 bg-primary-light border-r border-[#333333] p-4 overflow-y-auto flex-shrink-0">
+          {isUploadingImage && (
+            <div className="mb-4 bg-blue-500/20 border border-blue-500 rounded-lg p-3 text-sm text-blue-300">
+              画像をアップロード中... 📤
+            </div>
+          )}
           <ImageUploader onImageLoad={handleImageLoad} />
 
           {image && (
             <FilterControls
               filters={filters}
-              onFiltersChange={setFilters}
+              onFiltersChange={(newFilters) => {
+                setFilters(newFilters)
+                broadcastFilters(newFilters) // Broadcast manual changes only
+              }}
               disabled={!wasmModule}
+              imageData={processedImage}
+              onCropModeChange={setCropMode}
             />
           )}
         </div>
@@ -232,6 +333,14 @@ function App() {
           <ImageCanvas
             originalImage={image}
             processedImage={processedImage}
+            cropMode={cropMode}
+            onCropChange={(cropArea) => {
+              const newFilters = { ...filters, cropArea }
+              setFilters(newFilters)
+              broadcastFilters(newFilters) // Broadcast crop changes
+            }}
+            onCropComplete={() => setCropMode(false)}
+            onCropCancel={() => setCropMode(false)}
           />
 
           {/* Collaborative Cursors Overlay */}

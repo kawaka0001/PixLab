@@ -1,7 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { RealtimeChannel } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-import type { UserCursor, CursorBroadcastPayload } from '../types/collaboration'
+import type {
+  UserCursor,
+  CursorBroadcastPayload,
+  ImageUploadPayload,
+  FilterChangePayload,
+} from '../types/collaboration'
+import type { FilterState } from '../types/filters'
 
 const COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
@@ -49,12 +55,24 @@ function getRoomId(): string {
   return newRoomId
 }
 
+export interface SharedImage {
+  url: string
+  width: number
+  height: number
+  uploadedBy: string
+  timestamp: number
+}
+
 export interface UseCollaborationResult {
   roomId: string
   userId: string
   userColor: string
   otherCursors: Map<string, UserCursor>
+  sharedImage: SharedImage | null
+  sharedFilters: FilterState | null
   broadcastCursor: (x: number, y: number) => void
+  broadcastImage: (url: string, width: number, height: number) => void
+  broadcastFilters: (filters: FilterState) => void
   isConnected: boolean
 }
 
@@ -71,6 +89,8 @@ export function useCollaboration(): UseCollaborationResult {
   const [userColor] = useState(() => getUserColor(userId))
   const [roomId] = useState(() => getRoomId())
   const [otherCursors, setOtherCursors] = useState<Map<string, UserCursor>>(new Map())
+  const [sharedImage, setSharedImage] = useState<SharedImage | null>(null)
+  const [sharedFilters, setSharedFilters] = useState<FilterState | null>(null)
   const [isConnected, setIsConnected] = useState(false)
 
   const channelRef = useRef<RealtimeChannel | null>(null)
@@ -93,6 +113,42 @@ export function useCollaboration(): UseCollaborationResult {
       payload,
     })
   }, [userId, userColor])
+
+  const broadcastImage = useCallback((url: string, width: number, height: number) => {
+    if (!channelRef.current) return
+
+    const payload: ImageUploadPayload = {
+      type: 'image_upload',
+      userId,
+      imageUrl: url,
+      width,
+      height,
+      timestamp: Date.now(),
+    }
+
+    channelRef.current.send({
+      type: 'broadcast',
+      event: 'image-upload',
+      payload,
+    })
+  }, [userId])
+
+  const broadcastFilters = useCallback((filters: FilterState) => {
+    if (!channelRef.current) return
+
+    const payload: FilterChangePayload = {
+      type: 'filter_change',
+      userId,
+      filters,
+      timestamp: Date.now(),
+    }
+
+    channelRef.current.send({
+      type: 'broadcast',
+      event: 'filter-change',
+      payload,
+    })
+  }, [userId])
 
   useEffect(() => {
     const channel = supabase.channel(`room:${roomId}`, {
@@ -134,6 +190,26 @@ export function useCollaboration(): UseCollaborationResult {
 
         cleanupTimersRef.current.set(data.userId, timer)
       })
+      .on('broadcast', { event: 'image-upload' }, ({ payload }) => {
+        const data = payload as ImageUploadPayload
+
+        if (data.userId === userId) return // Don't process own uploads
+
+        setSharedImage({
+          url: data.imageUrl,
+          width: data.width,
+          height: data.height,
+          uploadedBy: data.userId,
+          timestamp: data.timestamp,
+        })
+      })
+      .on('broadcast', { event: 'filter-change' }, ({ payload }) => {
+        const data = payload as FilterChangePayload
+
+        if (data.userId === userId) return // Don't process own changes
+
+        setSharedFilters(data.filters)
+      })
       .subscribe((status) => {
         setIsConnected(status === 'SUBSCRIBED')
       })
@@ -152,7 +228,11 @@ export function useCollaboration(): UseCollaborationResult {
     userId,
     userColor,
     otherCursors,
+    sharedImage,
+    sharedFilters,
     broadcastCursor,
+    broadcastImage,
+    broadcastFilters,
     isConnected,
   }
 }

@@ -5,9 +5,11 @@ interface FilterControlsProps {
   filters: FilterState
   onFiltersChange: (filters: FilterState) => void
   disabled?: boolean
+  imageData?: ImageData | null
+  onCropModeChange?: (cropMode: boolean) => void
 }
 
-export function FilterControls({ filters, onFiltersChange, disabled }: FilterControlsProps) {
+export function FilterControls({ filters, onFiltersChange, disabled, imageData, onCropModeChange }: FilterControlsProps) {
   const debounceRef = useRef<number | null>(null)
 
   // Cleanup on unmount
@@ -34,12 +36,16 @@ export function FilterControls({ filters, onFiltersChange, disabled }: FilterCon
     onFiltersChange(initialFilterState)
   }
 
-  const hasActiveFilters = filters.grayscale || filters.blur > 0 || filters.brightness !== 0 || filters.flipHorizontal || filters.flipVertical || filters.rotation !== 0
+  const hasActiveFilters = filters.grayscale || filters.blur > 0 || filters.brightness !== 0 || filters.flipHorizontal || filters.flipVertical || filters.rotation !== 0 || filters.cropArea !== null
 
   // Handle rotation: increment by 90° (0 -> 90 -> 180 -> 270 -> 0)
   const handleRotate = () => {
     const nextRotation = ((filters.rotation + 90) % 360) as RotationAngle
     onFiltersChange({ ...filters, rotation: nextRotation })
+  }
+
+  const handleOpenCropTool = () => {
+    onCropModeChange?.(true)
   }
 
   return (
@@ -58,6 +64,18 @@ export function FilterControls({ filters, onFiltersChange, disabled }: FilterCon
       </div>
 
       <div className="space-y-4">
+        {/* Crop Tool Button */}
+        <button
+          onClick={handleOpenCropTool}
+          disabled={disabled || !imageData}
+          className={`w-full font-medium py-2 px-4 rounded-lg transition-colors shadow-lg ${
+            filters.cropArea
+              ? 'bg-accent-dark text-white'
+              : 'bg-accent hover:bg-accent-dark disabled:bg-[#3A3A3A] disabled:cursor-not-allowed text-white hover:shadow-accent/50'
+          }`}
+        >
+          ✂️ トリミング {filters.cropArea && '✓'}
+        </button>
         {/* Grayscale */}
         <button
           onClick={() => onFiltersChange({ ...filters, grayscale: !filters.grayscale })}
@@ -193,6 +211,11 @@ export function FilterControls({ filters, onFiltersChange, disabled }: FilterCon
               {filters.rotation !== 0 && (
                 <span className="px-2 py-1 bg-accent/20 text-accent text-xs rounded">
                   🔄 {filters.rotation}°
+                </span>
+              )}
+              {filters.cropArea && (
+                <span className="px-2 py-1 bg-accent/20 text-accent text-xs rounded">
+                  ✂️ トリミング ({filters.cropArea.width}x{filters.cropArea.height})
                 </span>
               )}
             </div>

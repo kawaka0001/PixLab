@@ -1,14 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
 import { ExportModal, type ExportFormat, type ExportScale } from './ExportModal'
+import { CropOverlay } from './CropOverlay'
 import { exportImage } from '../utils/exportImage'
+import { type CropArea } from '../types/filters'
 
 interface ImageCanvasProps {
   originalImage: ImageData | null
   processedImage: ImageData | null
+  cropMode?: boolean
+  onCropChange?: (cropArea: CropArea) => void
+  onCropComplete?: () => void
+  onCropCancel?: () => void
 }
 
-export function ImageCanvas({ originalImage, processedImage }: ImageCanvasProps) {
+export function ImageCanvas({
+  originalImage,
+  processedImage,
+  cropMode = false,
+  onCropChange,
+  onCropComplete,
+  onCropCancel,
+}: ImageCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [showingOriginal, setShowingOriginal] = useState(false)
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
 
@@ -114,11 +128,25 @@ export function ImageCanvas({ originalImage, processedImage }: ImageCanvasProps)
       </div>
 
       {/* Canvas */}
-      <div className="bg-[#333333] rounded p-4 flex items-center justify-center flex-1 min-h-0">
+      <div
+        ref={containerRef}
+        className="bg-[#333333] rounded p-4 flex items-center justify-center flex-1 min-h-0 relative"
+      >
         <canvas
           ref={canvasRef}
           className="max-w-full max-h-full h-auto rounded"
         />
+
+        {/* Crop Overlay */}
+        {cropMode && canvasRef.current && processedImage && onCropChange && onCropComplete && onCropCancel && (
+          <CropOverlay
+            canvasElement={canvasRef.current}
+            imageData={processedImage}
+            onCropChange={onCropChange}
+            onComplete={onCropComplete}
+            onCancel={onCropCancel}
+          />
+        )}
       </div>
 
       {/* Export Modal */}

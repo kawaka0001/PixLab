@@ -1,7 +1,7 @@
 import { useRef, ChangeEvent } from 'react'
 
 interface ImageUploaderProps {
-  onImageLoad: (imageData: ImageData) => void
+  onImageLoad: (imageData: ImageData, file: File) => void
 }
 
 export function ImageUploader({ onImageLoad }: ImageUploaderProps) {
@@ -31,7 +31,7 @@ export function ImageUploader({ onImageLoad }: ImageUploaderProps) {
         ctx.drawImage(img, 0, 0)
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
 
-        onImageLoad(imageData)
+        onImageLoad(imageData, file)
       }
 
       img.src = event.target?.result as string

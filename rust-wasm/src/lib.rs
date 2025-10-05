@@ -148,6 +148,32 @@ pub fn apply_rotate_270_cw(image_data: &[u8], width: u32, height: u32) -> Result
     Ok(result)
 }
 
+/// Crop image to specified rectangle
+#[wasm_bindgen]
+pub fn apply_crop(
+    image_data: &[u8],
+    width: u32,
+    height: u32,
+    x: u32,
+    y: u32,
+    crop_width: u32,
+    crop_height: u32,
+) -> Result<Vec<u8>, JsValue> {
+    let start = performance_now();
+    info!(
+        "Starting crop, size: {} bytes ({}x{}) -> crop at ({},{}) with size {}x{}",
+        image_data.len(), width, height, x, y, crop_width, crop_height
+    );
+
+    let result = filters::crop::apply(image_data, width, height, x, y, crop_width, crop_height)
+        .map_err(|e| JsValue::from_str(&format!("Crop error: {}", e)))?;
+
+    let elapsed = performance_now() - start;
+    info!("Crop completed in {:.2}ms", elapsed);
+
+    Ok(result)
+}
+
 /// Helper to get performance.now()
 fn performance_now() -> f64 {
     window()
