@@ -79,6 +79,9 @@ function App() {
         case 'blur':
           result = wasmModule.apply_blur(rawPixels, image.width, image.height, params?.radius || 5)
           break
+        case 'brightness':
+          result = wasmModule.apply_brightness(rawPixels, image.width, image.height, params?.adjustment || 0)
+          break
         default:
           logger.warn('Unknown filter type', { filterType })
           setIsProcessing(false)
