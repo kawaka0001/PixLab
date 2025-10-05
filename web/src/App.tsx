@@ -140,8 +140,8 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-primary text-white">
-      <header className="bg-primary-light border-b border-[#333333] p-4">
+    <div className="h-screen bg-primary text-white flex flex-col">
+      <header className="bg-primary-light border-b border-[#333333] p-4 flex-shrink-0">
         <div className="flex items-center gap-4">
           <img src="/logo.svg" alt="PixLab Logo" className="h-12 w-12" />
           <h1 className="text-3xl font-bold">
@@ -151,31 +151,29 @@ function App() {
         </div>
       </header>
 
-      <main className="container mx-auto p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Upload Section */}
-          <div className="lg:col-span-1">
-            <ImageUploader onImageLoad={handleImageLoad} />
+      <main className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar - Controls */}
+        <div className="w-80 bg-primary-light border-r border-[#333333] p-4 overflow-y-auto flex-shrink-0">
+          <ImageUploader onImageLoad={handleImageLoad} />
 
-            {image && (
-              <FilterControls
-                onFilterApply={handleFilterApply}
-                disabled={!wasmModule}
-              />
-            )}
-          </div>
-
-          {/* Canvas Section */}
-          <div className="lg:col-span-2">
-            <ImageCanvas
-              originalImage={image}
-              processedImage={processedImage}
+          {image && (
+            <FilterControls
+              onFilterApply={handleFilterApply}
+              disabled={!wasmModule}
             />
-          </div>
+          )}
+        </div>
+
+        {/* Main Canvas Area */}
+        <div className="flex-1 p-6 overflow-hidden">
+          <ImageCanvas
+            originalImage={image}
+            processedImage={processedImage}
+          />
         </div>
       </main>
 
-      <footer className="fixed bottom-0 w-full bg-primary-light border-t border-[#333333] p-2 text-center text-sm text-gray-400">
+      <footer className="bg-primary-light border-t border-[#333333] p-2 text-center text-sm text-gray-400 flex-shrink-0">
         <p>Built with <span className="text-accent">Rust 🦀</span> + WebAssembly ⚡ + React ⚛️</p>
       </footer>
     </div>

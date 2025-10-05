@@ -1,0 +1,13 @@
+# WASM Performance Optimizations
+
+[build]
+# Enable WASM SIMD for parallel pixel processing
+target = "wasm32-unknown-unknown"
+
+[target.wasm32-unknown-unknown]
+rustflags = [
+  # Enable WASM SIMD128 (4x parallel processing for pixels)
+  "-C", "target-feature=+simd128",
+  # Additional optimizations (LTO handled by Cargo.toml)
+  "-C", "opt-level=3",
+]

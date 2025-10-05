@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface ImageCanvasProps {
   originalImage: ImageData | null
@@ -6,34 +6,58 @@ interface ImageCanvasProps {
 }
 
 export function ImageCanvas({ originalImage, processedImage }: ImageCanvasProps) {
-  const originalCanvasRef = useRef<HTMLCanvasElement>(null)
-  const processedCanvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [showingOriginal, setShowingOriginal] = useState(false)
 
+  // Update canvas when image changes or when toggling between original/processed
   useEffect(() => {
-    if (!originalImage || !originalCanvasRef.current) return
+    const imageToDisplay = showingOriginal ? originalImage : processedImage
+    if (!imageToDisplay || !canvasRef.current) return
 
-    const canvas = originalCanvasRef.current
-    canvas.width = originalImage.width
-    canvas.height = originalImage.height
+    const canvas = canvasRef.current
+    canvas.width = imageToDisplay.width
+    canvas.height = imageToDisplay.height
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    ctx.putImageData(originalImage, 0, 0)
+    ctx.putImageData(imageToDisplay, 0, 0)
+  }, [originalImage, processedImage, showingOriginal])
+
+  // Keyboard shortcut (Space key)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && originalImage) {
+        e.preventDefault()
+        setShowingOriginal(true)
+      }
+    }
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault()
+        setShowingOriginal(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
   }, [originalImage])
 
-  useEffect(() => {
-    if (!processedImage || !processedCanvasRef.current) return
+  const handleCompareStart = () => {
+    if (originalImage) {
+      setShowingOriginal(true)
+    }
+  }
 
-    const canvas = processedCanvasRef.current
-    canvas.width = processedImage.width
-    canvas.height = processedImage.height
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    ctx.putImageData(processedImage, 0, 0)
-  }, [processedImage])
+  const handleCompareEnd = () => {
+    setShowingOriginal(false)
+  }
 
   if (!originalImage) {
     return (
@@ -44,29 +68,33 @@ export function ImageCanvas({ originalImage, processedImage }: ImageCanvasProps)
   }
 
   return (
-    <div className="space-y-6">
-      {/* Original */}
-      <div className="bg-primary-light rounded-lg p-4 border border-[#333333]">
-        <h3 className="text-lg font-semibold mb-3">Original</h3>
-        <div className="bg-[#333333] rounded p-2 flex justify-center">
-          <canvas
-            ref={originalCanvasRef}
-            className="max-w-full h-auto rounded"
-          />
-        </div>
+    <div className="bg-primary-light rounded-lg p-4 border border-[#333333] h-full flex flex-col">
+      {/* Header with Compare button */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">
+          {showingOriginal ? 'Original' : <span className="text-accent">Processed</span>}
+        </h3>
+
+        <button
+          onMouseDown={handleCompareStart}
+          onMouseUp={handleCompareEnd}
+          onMouseLeave={handleCompareEnd}
+          onTouchStart={handleCompareStart}
+          onTouchEnd={handleCompareEnd}
+          className="px-4 py-2 bg-[#333333] hover:bg-[#444444] rounded-lg transition-colors flex items-center gap-2 select-none"
+        >
+          <span>👁️</span>
+          <span>Compare</span>
+          <span className="text-xs text-gray-400">(Hold / Space)</span>
+        </button>
       </div>
 
-      {/* Processed */}
-      <div className="bg-primary-light rounded-lg p-4 border border-[#333333]">
-        <h3 className="text-lg font-semibold mb-3">
-          <span className="text-accent">Processed</span> (WASM)
-        </h3>
-        <div className="bg-[#333333] rounded p-2 flex justify-center">
-          <canvas
-            ref={processedCanvasRef}
-            className="max-w-full h-auto rounded"
-          />
-        </div>
+      {/* Canvas */}
+      <div className="bg-[#333333] rounded p-4 flex items-center justify-center flex-1 min-h-0">
+        <canvas
+          ref={canvasRef}
+          className="max-w-full max-h-full h-auto rounded"
+        />
       </div>
     </div>
   )

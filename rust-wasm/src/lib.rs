@@ -4,10 +4,8 @@ use wasm_bindgen::prelude::*;
 use log::info;
 use web_sys::window;
 
-// When the `wee_alloc` feature is enabled, use `wee_alloc` as the global allocator.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+// Note: wee_alloc is removed in favor of default allocator
+// Modern WASM runtime allocators are already quite efficient
 
 /// Initialize the WASM module
 /// This should be called once when the module is loaded

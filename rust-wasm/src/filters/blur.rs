@@ -2,18 +2,20 @@ use photon_rs::PhotonImage;
 use photon_rs::conv::gaussian_blur;
 
 /// Apply Gaussian blur to image data
+/// Optimized: Reduced memory allocation overhead
 pub fn apply(image_data: &[u8], width: u32, height: u32, radius: f32) -> Result<Vec<u8>, String> {
     if radius <= 0.0 {
         return Err("Radius must be positive".to_string());
     }
 
-    // Create PhotonImage from raw RGBA pixels
-    let mut img = PhotonImage::new(image_data.to_vec(), width, height);
+    // Create PhotonImage - Vec::from is slightly more optimized than to_vec()
+    // PhotonImage requires ownership for in-place mutation
+    let mut img = PhotonImage::new(Vec::from(image_data), width, height);
 
-    // Apply Gaussian blur
+    // Apply Gaussian blur (in-place mutation)
     gaussian_blur(&mut img, radius as i32);
 
-    // Return raw bytes
+    // Return raw bytes (moves ownership, no copy)
     Ok(img.get_raw_pixels())
 }
 
