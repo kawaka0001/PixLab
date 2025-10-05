@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ImageUploader } from './components/ImageUploader'
 import { FilterControls } from './components/FilterControls'
 import { ImageCanvas } from './components/ImageCanvas'
+import { CollaborativeCursors } from './components/CollaborativeCursors'
 import { useWasm } from './wasm/useWasm'
+import { useCollaboration } from './hooks/useCollaboration'
 import logger from './utils/logger'
 import { type FilterState, initialFilterState } from './types/filters'
 
 function App() {
   const { wasmModule, isLoading, error } = useWasm()
+  const { roomId, otherCursors, broadcastCursor, isConnected } = useCollaboration()
+  const canvasContainerRef = useRef<HTMLDivElement>(null)
   const [image, setImage] = useState<ImageData | null>(null)
   const [processedImage, setProcessedImage] = useState<ImageData | null>(null)
   const [filters, setFilters] = useState<FilterState>(initialFilterState)
@@ -40,6 +44,24 @@ function App() {
     })
     setImage(imageData)
     setProcessedImage(imageData)
+  }
+
+  // Handle mouse move for cursor broadcasting
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!canvasContainerRef.current) return
+
+    const rect = canvasContainerRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    broadcastCursor(x, y)
+  }
+
+  // Copy room URL to clipboard
+  const handleCopyRoomUrl = () => {
+    const url = window.location.href
+    navigator.clipboard.writeText(url)
+    logger.info('Room URL copied to clipboard', { action: 'COPY_ROOM_URL', url })
   }
 
   // Filter Pipeline: Apply multiple filters in sequence
@@ -146,12 +168,44 @@ function App() {
   return (
     <div className="h-screen bg-primary text-white flex flex-col">
       <header className="bg-primary-light border-b border-[#333333] p-4 flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <img src="/logo.svg" alt="PixLab Logo" className="h-12 w-12" />
-          <h1 className="text-3xl font-bold">
-            <span className="text-accent">PixLab</span>
-            <span className="text-sm text-gray-400 ml-3">WebAssembly画像エディタ</span>
-          </h1>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <img src="/logo.svg" alt="PixLab Logo" className="h-12 w-12" />
+            <h1 className="text-3xl font-bold">
+              <span className="text-accent">PixLab</span>
+              <span className="text-sm text-gray-400 ml-3">WebAssembly画像エディタ</span>
+            </h1>
+          </div>
+
+          {/* Collaboration Status */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-2 bg-[#333333] rounded-lg">
+              <div
+                className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`}
+                title={isConnected ? '接続中' : '切断'}
+              />
+              <span className="text-sm text-gray-300">
+                {isConnected ? 'オンライン' : 'オフライン'}
+              </span>
+              {otherCursors.size > 0 && (
+                <span className="text-sm text-accent ml-2">
+                  +{otherCursors.size} 人
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={handleCopyRoomUrl}
+              className="px-3 py-2 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg transition-colors text-sm font-medium"
+              title="共有URLをコピー"
+            >
+              🔗 共有
+            </button>
+
+            <div className="text-xs text-gray-500">
+              Room: {roomId.slice(0, 6)}
+            </div>
+          </div>
         </div>
       </header>
 
@@ -170,10 +224,20 @@ function App() {
         </div>
 
         {/* Main Canvas Area */}
-        <div className="flex-1 p-6 overflow-hidden">
+        <div
+          ref={canvasContainerRef}
+          className="flex-1 p-6 overflow-hidden relative"
+          onMouseMove={handleMouseMove}
+        >
           <ImageCanvas
             originalImage={image}
             processedImage={processedImage}
+          />
+
+          {/* Collaborative Cursors Overlay */}
+          <CollaborativeCursors
+            cursors={otherCursors}
+            containerRef={canvasContainerRef}
           />
         </div>
       </main>
