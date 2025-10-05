@@ -43,7 +43,7 @@ const logger = {
     )
 
     // 開発環境でのデバッグ用：JSON形式でも出力
-    if (context && process.env.NODE_ENV === 'development') {
+    if (context && import.meta.env.DEV) {
       console.log('📊 Context:', logData)
     }
   },
