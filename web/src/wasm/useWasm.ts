@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react'
 import logger from '../utils/logger'
-// Import the WASM module type directly from generated TypeScript definitions
+
+/**
+ * ⚠️ CRITICAL: Single Source of Truth (SSOT) Pattern
+ *
+ * This module imports WASM types DIRECTLY from wasm-bindgen generated definitions.
+ *
+ * DO NOT create hand-written type definitions for WASM functions.
+ * They will become out of sync when Rust code changes, causing deployment failures.
+ *
+ * Correct dependency flow:
+ *   Rust Code (SSOT) → wasm-pack build → Generated .d.ts → TypeScript
+ *
+ * See CLAUDE.md for details on past deployment failures caused by type mismatches.
+ */
 import type * as WasmModule from '../../../rust-wasm/pkg/pixlab_wasm'
 
 interface UseWasmResult {

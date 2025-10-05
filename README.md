@@ -92,6 +92,37 @@ Benchmark (1920×1080 image):
 - **Source Maps**: Enable with `wasm-pack build --dev`
 - **Chrome DevTools**: Install DWARF extension for Rust source debugging
 
+## ⚠️ Important: WASM × TypeScript Development Rules
+
+### Before Committing
+
+**Git pre-commit hook automatically runs type checking.**
+
+```bash
+# Manual check (if needed)
+cd web && npm run type-check
+```
+
+### When Changing Rust Code
+
+```bash
+# 1. Build WASM (regenerates TypeScript types)
+npm run build:wasm
+
+# 2. Type check runs automatically (postbuild:wasm hook)
+
+# 3. If TypeScript errors appear, update TS code accordingly
+```
+
+### Critical: Single Source of Truth
+
+- ✅ **DO**: Import types from generated `.d.ts` files
+- ❌ **DON'T**: Create hand-written WASM type definitions
+
+**Why?** Hand-written types become out of sync with Rust changes, causing production deployment failures.
+
+See [CLAUDE.md](./CLAUDE.md) for detailed development guidelines and troubleshooting.
+
 ## 📝 License
 
 MIT

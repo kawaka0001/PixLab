@@ -10,15 +10,19 @@
     "build": "npm run build:wasm && npm run build:web",
     "build:vercel": "npm run build:web",
     "build:wasm": "cd rust-wasm && wasm-pack build --target web --release",
+    "postbuild:wasm": "echo '✅ WASM built. Verifying TypeScript types...' && cd web && npm run type-check",
     "build:web": "cd web && npm run build",
+    "prebuild:web": "cd web && npm run type-check",
     "test": "npm run test:rust && npm run test:web",
     "test:rust": "cd rust-wasm && cargo test",
     "test:web": "cd web && npm run type-check",
     "install:all": "npm install && cd web && npm install",
-    "clean": "rm -rf rust-wasm/target rust-wasm/pkg web/dist web/node_modules node_modules"
+    "clean": "rm -rf rust-wasm/target rust-wasm/pkg web/dist web/node_modules node_modules",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "husky": "^9.1.7"
   },
   "engines": {
     "node": ">=18.0.0"

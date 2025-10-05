@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+
+echo "🔍 Running pre-commit checks..."
+
+# TypeScript type check (WASM型整合性を保証)
+echo "📝 Checking TypeScript types..."
+cd web && npm run type-check
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript type check failed!"
+  echo "💡 Hint: Make sure WASM types are in sync with Rust code"
+  echo "   Run: npm run build:wasm"
+  exit 1
+fi
+
+cd ..
+echo "✅ All pre-commit checks passed!"
