@@ -314,6 +314,36 @@ export function apply_blur(image_data, width, height, radius) {
 }
 
 /**
+ * Apply brightness adjustment
+ * adjustment: -255.0 (darker) to +255.0 (brighter)
+ * @param {Uint8Array} image_data
+ * @param {number} width
+ * @param {number} height
+ * @param {number} adjustment
+ * @returns {Uint8Array}
+ */
+export function apply_brightness(image_data, width, height, adjustment) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passArray8ToWasm0(image_data, wasm.__wbindgen_export_1);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.apply_brightness(retptr, ptr0, len0, width, height, adjustment);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+        if (r3) {
+            throw takeObject(r2);
+        }
+        var v2 = getArrayU8FromWasm0(r0, r1).slice();
+        wasm.__wbindgen_export_2(r0, r1 * 1, 1);
+        return v2;
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+/**
  * ! [temp] Check if WASM is supported.
  */
 export function run() {

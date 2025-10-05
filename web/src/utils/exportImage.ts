@@ -119,7 +119,7 @@ function getMimeType(format: ExportFormat): string {
  */
 function generateFilename(format: ExportFormat, scale: ExportScale): string {
   const date = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
-  const scaleSuffix = scale > 1 ? `@${scale}x` : ''
+  const scaleSuffix = scale !== 1 ? `@${scale}x` : ''
   return `pixlab-export-${date}${scaleSuffix}.${format}`
 }
 

@@ -5,6 +5,7 @@ export const init: () => void;
 export const greet: (a: number, b: number, c: number) => void;
 export const apply_grayscale: (a: number, b: number, c: number, d: number, e: number) => void;
 export const apply_blur: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+export const apply_brightness: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
 export const __wbg_photonimage_free: (a: number, b: number) => void;
 export const photonimage_new: (a: number, b: number, c: number, d: number) => number;
 export const photonimage_new_from_byteslice: (a: number, b: number) => number;

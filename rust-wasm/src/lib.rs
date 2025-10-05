@@ -57,6 +57,22 @@ pub fn apply_blur(image_data: &[u8], width: u32, height: u32, radius: f32) -> Re
     Ok(result)
 }
 
+/// Apply brightness adjustment
+/// adjustment: -255.0 (darker) to +255.0 (brighter)
+#[wasm_bindgen]
+pub fn apply_brightness(image_data: &[u8], width: u32, height: u32, adjustment: f32) -> Result<Vec<u8>, JsValue> {
+    let start = performance_now();
+    info!("Starting brightness adjustment ({}), size: {} bytes ({}x{})", adjustment, image_data.len(), width, height);
+
+    let result = filters::brightness::apply(image_data, width, height, adjustment)
+        .map_err(|e| JsValue::from_str(&format!("Brightness error: {}", e)))?;
+
+    let elapsed = performance_now() - start;
+    info!("Brightness adjustment completed in {:.2}ms", elapsed);
+
+    Ok(result)
+}
+
 /// Helper to get performance.now()
 fn performance_now() -> f64 {
     window()

@@ -18,6 +18,11 @@ export function apply_grayscale(image_data: Uint8Array, width: number, height: n
  */
 export function apply_blur(image_data: Uint8Array, width: number, height: number, radius: number): Uint8Array;
 /**
+ * Apply brightness adjustment
+ * adjustment: -255.0 (darker) to +255.0 (brighter)
+ */
+export function apply_brightness(image_data: Uint8Array, width: number, height: number, adjustment: number): Uint8Array;
+/**
  * ! [temp] Check if WASM is supported.
  */
 export function run(): void;
@@ -2885,6 +2890,7 @@ export interface InitOutput {
   readonly greet: (a: number, b: number, c: number) => void;
   readonly apply_grayscale: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly apply_blur: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly apply_brightness: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly __wbg_photonimage_free: (a: number, b: number) => void;
   readonly photonimage_new: (a: number, b: number, c: number, d: number) => number;
   readonly photonimage_new_from_byteslice: (a: number, b: number) => number;

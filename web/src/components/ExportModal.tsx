@@ -100,12 +100,12 @@ export function ExportModal({ isOpen, onClose, imageData, onExport }: ExportModa
           {/* Scale Selection */}
           <div>
             <label className="block text-sm font-medium mb-3">Scale</label>
-            <div className="flex gap-3">
-              {([1, 2, 3] as const).map((s) => (
+            <div className="grid grid-cols-3 gap-2">
+              {([0.5, 0.75, 1, 2, 3] as const).map((s) => (
                 <button
                   key={s}
                   onClick={() => setScale(s)}
-                  className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${
+                  className={`py-2 px-3 rounded-lg border transition-colors text-sm ${
                     scale === s
                       ? 'bg-accent border-accent text-primary font-semibold'
                       : 'bg-[#333333] border-[#444444] text-gray-300 hover:border-gray-300'
@@ -117,7 +117,7 @@ export function ExportModal({ isOpen, onClose, imageData, onExport }: ExportModa
             </div>
             <p className="text-xs text-gray-400 mt-2">
               {imageData && (
-                <>Output: {imageData.width * scale} × {imageData.height * scale}px</>
+                <>Output: {Math.round(imageData.width * scale)} × {Math.round(imageData.height * scale)}px</>
               )}
             </p>
           </div>
