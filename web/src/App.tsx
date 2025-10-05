@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { ImageUploader } from './components/ImageUploader'
 import { FilterControls } from './components/FilterControls'
 import { ImageCanvas } from './components/ImageCanvas'
-import { CollaborativeCursors } from './components/CollaborativeCursors'
+import { CollaborativeCursorsCanvas } from './components/CollaborativeCursorsCanvas'
 import { useWasm } from './wasm/useWasm'
 import { useCollaboration } from './hooks/useCollaboration'
 import { uploadImage, downloadImageAsImageData } from './lib/storage'
 import { saveCachedState, loadCachedState } from './lib/cache'
+import { analyzeImage, type ImageMetadata } from './lib/imageMetadata'
 import logger from './utils/logger'
 import { type FilterState, initialFilterState } from './types/filters'
 
@@ -32,6 +33,8 @@ function App() {
   const [copied, setCopied] = useState(false)
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null)
   const [isRestoringCache, setIsRestoringCache] = useState(true)
+  const [imageMetadata, setImageMetadata] = useState<ImageMetadata | null>(null)
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false)
 
   useEffect(() => {
     if (wasmModule) {
@@ -141,6 +144,24 @@ function App() {
     })
     setImage(imageData)
     setProcessedImage(imageData)
+
+    // Analyze image with wasmCloud service
+    try {
+      setIsAnalyzingImage(true)
+      const metadata = await analyzeImage(file)
+      setImageMetadata(metadata)
+      logger.info('Image analyzed successfully', {
+        action: 'IMAGE_ANALYSIS',
+        metadata,
+      })
+    } catch (err) {
+      logger.error('Failed to analyze image', {
+        action: 'IMAGE_ANALYSIS_ERROR',
+        error: err instanceof Error ? err.message : String(err),
+      })
+    } finally {
+      setIsAnalyzingImage(false)
+    }
 
     // Upload to Supabase Storage and broadcast to room
     try {
@@ -396,7 +417,44 @@ function App() {
               画像をアップロード中... 📤
             </div>
           )}
+          {isAnalyzingImage && (
+            <div className="mb-4 bg-purple-500/20 border border-purple-500 rounded-lg p-3 text-sm text-purple-300">
+              画像を解析中... 🔍
+            </div>
+          )}
           <ImageUploader onImageLoad={handleImageLoad} />
+
+          {/* Image Metadata Display */}
+          {imageMetadata && (
+            <div className="mt-4 bg-primary-light rounded-lg p-4 border border-[#333333]">
+              <h3 className="text-lg font-semibold mb-3 text-accent">画像情報</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">フォーマット:</span>
+                  <span className="font-medium text-white uppercase">{imageMetadata.format}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">サイズ:</span>
+                  <span className="font-medium text-white">
+                    {imageMetadata.width && imageMetadata.height
+                      ? `${imageMetadata.width} × ${imageMetadata.height}px`
+                      : '不明'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">ファイルサイズ:</span>
+                  <span className="font-medium text-white">
+                    {(imageMetadata.size_bytes / 1024).toFixed(2)} KB
+                  </span>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-[#333333]">
+                <p className="text-xs text-gray-500 italic">
+                  wasmCloud 🌩️ で解析
+                </p>
+              </div>
+            </div>
+          )}
 
           {image && (
             <FilterControls
@@ -431,8 +489,8 @@ function App() {
             onCropCancel={() => setCropMode(false)}
           />
 
-          {/* Collaborative Cursors Overlay */}
-          <CollaborativeCursors
+          {/* Collaborative Cursors Overlay (Canvas-based for 60fps performance) */}
+          <CollaborativeCursorsCanvas
             cursors={otherCursors}
             containerRef={canvasContainerRef}
           />
