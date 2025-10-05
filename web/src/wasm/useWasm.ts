@@ -1,20 +1,16 @@
 import { useState, useEffect } from 'react'
 import logger from '../utils/logger'
-
-interface WasmModule {
-  greet: (name: string) => string
-  apply_grayscale: (imageData: Uint8Array, width: number, height: number) => Uint8Array
-  apply_blur: (imageData: Uint8Array, width: number, height: number, radius: number) => Uint8Array
-}
+// Import the WASM module type directly from generated TypeScript definitions
+import type * as WasmModule from '../../../rust-wasm/pkg/pixlab_wasm'
 
 interface UseWasmResult {
-  wasmModule: WasmModule | null
+  wasmModule: typeof WasmModule | null
   isLoading: boolean
   error: Error | null
 }
 
 export function useWasm(): UseWasmResult {
-  const [wasmModule, setWasmModule] = useState<WasmModule | null>(null)
+  const [wasmModule, setWasmModule] = useState<typeof WasmModule | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
@@ -39,7 +35,7 @@ export function useWasm(): UseWasmResult {
         })
 
         if (mounted) {
-          setWasmModule(wasmModule as unknown as WasmModule)
+          setWasmModule(wasmModule)
           setIsLoading(false)
         }
       } catch (err) {
