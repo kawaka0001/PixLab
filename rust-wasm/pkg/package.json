@@ -1,0 +1,18 @@
+{
+  "name": "pixlab-wasm",
+  "type": "module",
+  "collaborators": [
+    "PixLab Team"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "pixlab_wasm_bg.wasm",
+    "pixlab_wasm.js",
+    "pixlab_wasm.d.ts"
+  ],
+  "main": "pixlab_wasm.js",
+  "types": "pixlab_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

@@ -1,6 +1,6 @@
 # Rust
 rust-wasm/target/
-rust-wasm/pkg/
+# rust-wasm/pkg/  # Vercelデプロイのためコミット対象にする
 **/*.rs.bk
 Cargo.lock
 
