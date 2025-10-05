@@ -76,7 +76,7 @@ export function ImageCanvas({ originalImage, processedImage }: ImageCanvasProps)
   if (!originalImage) {
     return (
       <div className="bg-primary-light rounded-lg p-12 border border-[#333333] flex items-center justify-center min-h-96">
-        <p className="text-gray-400 text-lg">No image loaded. Upload an image to start editing.</p>
+        <p className="text-gray-400 text-lg">画像がアップロードされていません。画像を選択して編集を開始してください。</p>
       </div>
     )
   }
@@ -86,7 +86,7 @@ export function ImageCanvas({ originalImage, processedImage }: ImageCanvasProps)
       {/* Header with Compare and Export buttons */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">
-          {showingOriginal ? 'Original' : <span className="text-accent">Processed</span>}
+          {showingOriginal ? 'オリジナル' : <span className="text-accent">処理済み</span>}
         </h3>
 
         <div className="flex gap-2">
@@ -99,8 +99,8 @@ export function ImageCanvas({ originalImage, processedImage }: ImageCanvasProps)
             className="px-4 py-2 bg-[#333333] hover:bg-[#444444] rounded-lg transition-colors flex items-center gap-2 select-none"
           >
             <span>👁️</span>
-            <span>Compare</span>
-            <span className="text-xs text-gray-400">(Hold / Space)</span>
+            <span>比較</span>
+            <span className="text-xs text-gray-400">(押し続ける / Space)</span>
           </button>
 
           <button
@@ -108,7 +108,7 @@ export function ImageCanvas({ originalImage, processedImage }: ImageCanvasProps)
             className="px-4 py-2 bg-accent hover:bg-accent/90 text-primary font-semibold rounded-lg transition-colors flex items-center gap-2"
           >
             <span>⬇️</span>
-            <span>Export</span>
+            <span>エクスポート</span>
           </button>
         </div>
       </div>

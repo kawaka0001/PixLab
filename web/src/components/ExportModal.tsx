@@ -72,7 +72,7 @@ export function ExportModal({ isOpen, onClose, imageData, onExport }: ExportModa
       <div className="bg-primary-light border border-[#333333] rounded-lg w-full max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#333333]">
-          <h2 className="text-xl font-semibold">Export Image</h2>
+          <h2 className="text-xl font-semibold">画像をエクスポート</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors"
@@ -85,21 +85,21 @@ export function ExportModal({ isOpen, onClose, imageData, onExport }: ExportModa
         <div className="p-6 space-y-6">
           {/* Format Selection */}
           <div>
-            <label className="block text-sm font-medium mb-2">Format</label>
+            <label className="block text-sm font-medium mb-2">フォーマット</label>
             <select
               value={format}
               onChange={(e) => setFormat(e.target.value as ExportFormat)}
               className="w-full bg-[#333333] border border-[#444444] rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent"
             >
-              <option value="png">PNG (Lossless, Transparency)</option>
-              <option value="jpg">JPG (Smaller File Size)</option>
-              <option value="webp">WebP (Modern, High Compression)</option>
+              <option value="png">PNG (無劣化、透過対応)</option>
+              <option value="jpg">JPG (ファイルサイズ小)</option>
+              <option value="webp">WebP (高圧縮)</option>
             </select>
           </div>
 
           {/* Scale Selection */}
           <div>
-            <label className="block text-sm font-medium mb-3">Scale</label>
+            <label className="block text-sm font-medium mb-3">スケール</label>
             <div className="grid grid-cols-3 gap-2">
               {([0.5, 0.75, 1, 2, 3] as const).map((s) => (
                 <button
@@ -117,7 +117,7 @@ export function ExportModal({ isOpen, onClose, imageData, onExport }: ExportModa
             </div>
             <p className="text-xs text-gray-400 mt-2">
               {imageData && (
-                <>Output: {Math.round(imageData.width * scale)} × {Math.round(imageData.height * scale)}px</>
+                <>出力: {Math.round(imageData.width * scale)} × {Math.round(imageData.height * scale)}px</>
               )}
             </p>
           </div>
@@ -126,7 +126,7 @@ export function ExportModal({ isOpen, onClose, imageData, onExport }: ExportModa
           {(format === 'jpg' || format === 'webp') && (
             <div>
               <label className="block text-sm font-medium mb-2">
-                Quality: {(quality * 100).toFixed(0)}%
+                品質: {(quality * 100).toFixed(0)}%
               </label>
               <input
                 type="range"
@@ -138,18 +138,18 @@ export function ExportModal({ isOpen, onClose, imageData, onExport }: ExportModa
                 className="w-full h-2 bg-[#333333] rounded-lg appearance-none cursor-pointer accent-accent"
               />
               <div className="flex justify-between text-xs text-gray-400 mt-1">
-                <span>Smaller file</span>
-                <span>Better quality</span>
+                <span>ファイルサイズ小</span>
+                <span>品質優先</span>
               </div>
             </div>
           )}
 
           {/* Filename Preview */}
           <div className="bg-[#333333] rounded-lg p-4 border border-[#444444]">
-            <div className="text-sm text-gray-400 mb-1">Filename</div>
+            <div className="text-sm text-gray-400 mb-1">ファイル名</div>
             <div className="font-mono text-sm text-accent">{getFilename()}</div>
             <div className="text-xs text-gray-400 mt-2">
-              Estimated size: <span className="text-white">{getEstimatedSize()}</span>
+              予想サイズ: <span className="text-white">{getEstimatedSize()}</span>
             </div>
           </div>
         </div>
@@ -160,13 +160,13 @@ export function ExportModal({ isOpen, onClose, imageData, onExport }: ExportModa
             onClick={onClose}
             className="flex-1 px-4 py-2 bg-[#333333] hover:bg-[#444444] rounded-lg transition-colors"
           >
-            Cancel
+            キャンセル
           </button>
           <button
             onClick={handleExport}
             className="flex-1 px-4 py-2 bg-accent hover:bg-accent/90 text-primary font-semibold rounded-lg transition-colors"
           >
-            Download
+            ダウンロード
           </button>
         </div>
       </div>

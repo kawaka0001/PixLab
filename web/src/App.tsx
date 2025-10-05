@@ -126,7 +126,7 @@ function App() {
       <div className="min-h-screen bg-primary flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <img src="/logo.svg" alt="PixLab Logo" className="h-24 w-24 animate-pulse" />
-          <div className="text-white text-xl">Loading WASM module... 🔄</div>
+          <div className="text-white text-xl">WASMモジュールを読み込み中... 🔄</div>
         </div>
       </div>
     )
@@ -137,7 +137,7 @@ function App() {
       <div className="min-h-screen bg-primary flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <img src="/logo.svg" alt="PixLab Logo" className="h-24 w-24 opacity-50" />
-          <div className="text-red-500 text-xl">Error loading WASM: {error.message}</div>
+          <div className="text-red-500 text-xl">WASMの読み込みエラー: {error.message}</div>
         </div>
       </div>
     )
@@ -150,7 +150,7 @@ function App() {
           <img src="/logo.svg" alt="PixLab Logo" className="h-12 w-12" />
           <h1 className="text-3xl font-bold">
             <span className="text-accent">PixLab</span>
-            <span className="text-sm text-gray-400 ml-3">WebAssembly Image Editor</span>
+            <span className="text-sm text-gray-400 ml-3">WebAssembly画像エディタ</span>
           </h1>
         </div>
       </header>
@@ -179,7 +179,7 @@ function App() {
       </main>
 
       <footer className="bg-primary-light border-t border-[#333333] p-2 text-center text-sm text-gray-400 flex-shrink-0">
-        <p>Built with <span className="text-accent">Rust 🦀</span> + WebAssembly ⚡ + React ⚛️</p>
+        <p><span className="text-accent">Rust 🦀</span> + WebAssembly ⚡ + React ⚛️ で構築</p>
       </footer>
     </div>
   )

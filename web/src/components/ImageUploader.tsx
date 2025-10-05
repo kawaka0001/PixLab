@@ -42,13 +42,13 @@ export function ImageUploader({ onImageLoad }: ImageUploaderProps) {
 
   return (
     <div className="bg-primary-light rounded-lg p-6 border border-[#333333]">
-      <h2 className="text-xl font-semibold mb-4">Upload Image</h2>
+      <h2 className="text-xl font-semibold mb-4">画像をアップロード</h2>
 
       <button
         onClick={() => fileInputRef.current?.click()}
         className="w-full bg-accent hover:bg-accent-dark text-white font-medium py-3 px-4 rounded-lg transition-colors shadow-lg hover:shadow-accent/50"
       >
-        Choose Image
+        画像を選択
       </button>
 
       <input
@@ -63,7 +63,7 @@ export function ImageUploader({ onImageLoad }: ImageUploaderProps) {
       <canvas ref={canvasRef} className="hidden" />
 
       <p className="mt-4 text-sm text-gray-400">
-        Supported formats: PNG, JPEG, GIF, WebP
+        対応形式: PNG, JPEG, GIF, WebP
       </p>
     </div>
   )
