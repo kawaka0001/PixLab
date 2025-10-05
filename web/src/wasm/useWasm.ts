@@ -3,8 +3,8 @@ import logger from '../utils/logger'
 
 interface WasmModule {
   greet: (name: string) => string
-  apply_grayscale: (imageData: Uint8Array) => Uint8Array
-  apply_blur: (imageData: Uint8Array, radius: number) => Uint8Array
+  apply_grayscale: (imageData: Uint8Array, width: number, height: number) => Uint8Array
+  apply_blur: (imageData: Uint8Array, width: number, height: number, radius: number) => Uint8Array
 }
 
 interface UseWasmResult {
