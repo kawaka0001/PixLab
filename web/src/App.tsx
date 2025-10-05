@@ -6,6 +6,7 @@ import { CollaborativeCursors } from './components/CollaborativeCursors'
 import { useWasm } from './wasm/useWasm'
 import { useCollaboration } from './hooks/useCollaboration'
 import { uploadImage, downloadImageAsImageData } from './lib/storage'
+import { saveCachedState, loadCachedState } from './lib/cache'
 import logger from './utils/logger'
 import { type FilterState, initialFilterState } from './types/filters'
 
@@ -29,6 +30,8 @@ function App() {
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [cropMode, setCropMode] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null)
+  const [isRestoringCache, setIsRestoringCache] = useState(true)
 
   useEffect(() => {
     if (wasmModule) {
@@ -46,6 +49,80 @@ function App() {
       }
     }
   }, [wasmModule])
+
+  /**
+   * Restore cached state on initial load
+   * Provides instant recovery after page reload
+   */
+  useEffect(() => {
+    const restoreCache = async () => {
+      try {
+        const cached = await loadCachedState(roomId)
+
+        if (cached && cached.imageUrl) {
+          logger.info('Restoring from cache', {
+            action: 'CACHE_RESTORE',
+            timestamp: cached.timestamp,
+          })
+
+          // Restore filters immediately
+          setFilters(cached.filters)
+
+          // Download and restore image
+          const imageData = await downloadImageAsImageData(cached.imageUrl)
+          setImage(imageData)
+          setProcessedImage(imageData)
+          setCurrentImageUrl(cached.imageUrl)
+
+          logger.info('Cache restored successfully', {
+            action: 'CACHE_RESTORE_SUCCESS',
+          })
+        }
+      } catch (err) {
+        logger.error('Failed to restore cache', {
+          action: 'CACHE_RESTORE_ERROR',
+          error: err instanceof Error ? err.message : String(err),
+        })
+      } finally {
+        setIsRestoringCache(false)
+      }
+    }
+
+    restoreCache()
+  }, [roomId]) // Only run once on mount
+
+  /**
+   * Auto-save state to cache (debounced)
+   * Saves current image URL and filters for instant recovery
+   */
+  useEffect(() => {
+    if (isRestoringCache) return // Don't save while restoring
+    if (!currentImageUrl || !image) return // Nothing to save yet
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await saveCachedState({
+          roomId,
+          imageUrl: currentImageUrl,
+          imageWidth: image.width,
+          imageHeight: image.height,
+          filters,
+          timestamp: Date.now(),
+        })
+
+        logger.debug('State auto-saved to cache', {
+          action: 'CACHE_AUTO_SAVE',
+        })
+      } catch (err) {
+        logger.error('Failed to auto-save cache', {
+          action: 'CACHE_AUTO_SAVE_ERROR',
+          error: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }, 500) // Debounce: save 500ms after last change
+
+    return () => clearTimeout(timeoutId)
+  }, [roomId, currentImageUrl, image, filters, isRestoringCache])
 
   /**
    * Handle local image upload
@@ -69,6 +146,7 @@ function App() {
     try {
       setIsUploadingImage(true)
       const url = await uploadImage(file, roomId)
+      setCurrentImageUrl(url) // Save URL for caching
       broadcastImage(url, imageData.width, imageData.height)
       logger.info('Image uploaded to storage and broadcasted', {
         action: 'IMAGE_BROADCAST',
@@ -101,6 +179,7 @@ function App() {
       .then((imageData) => {
         setImage(imageData)
         setProcessedImage(imageData)
+        setCurrentImageUrl(sharedImage.url) // Save URL for caching
         logger.info('Shared image loaded successfully', {
           action: 'SHARED_IMAGE_LOADED',
         })
