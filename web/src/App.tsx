@@ -3,6 +3,7 @@ import { ImageUploader } from './components/ImageUploader'
 import { FilterControls } from './components/FilterControls'
 import { ImageCanvas } from './components/ImageCanvas'
 import { useWasm } from './wasm/useWasm'
+import logger from './utils/logger'
 
 function App() {
   const { wasmModule, isLoading, error } = useWasm()
@@ -11,16 +12,30 @@ function App() {
 
   useEffect(() => {
     if (wasmModule) {
-      console.log('WASM module loaded successfully! 🎉')
+      logger.info('WASM module loaded successfully! 🎉', {
+        action: 'WASM_INIT',
+      })
       try {
-        console.log('Greeting:', wasmModule.greet('Developer'))
+        const greeting = wasmModule.greet('Developer')
+        logger.debug('Greeting test', { action: 'WASM_GREET', greeting })
       } catch (err) {
-        console.error('Greet error:', err)
+        logger.error('Greet test failed', {
+          action: 'WASM_GREET',
+          error: err instanceof Error ? err.message : String(err),
+        })
       }
     }
   }, [wasmModule])
 
   const handleImageLoad = (imageData: ImageData) => {
+    logger.info('Image uploaded', {
+      action: 'IMAGE_UPLOAD',
+      imageInfo: {
+        width: imageData.width,
+        height: imageData.height,
+        size: imageData.data.length,
+      },
+    })
     setImage(imageData)
     setProcessedImage(imageData)
   }
@@ -28,10 +43,21 @@ function App() {
   const handleFilterApply = async (filterType: string, params?: any) => {
     if (!image || !wasmModule) return
 
+    logger.info('Filter apply started', {
+      action: 'FILTER_APPLY',
+      filterType,
+      params,
+      imageInfo: {
+        width: image.width,
+        height: image.height,
+        size: image.data.length,
+      },
+    })
+
     const start = performance.now()
 
     try {
-      const rawPixels = image.data
+      const rawPixels = new Uint8Array(image.data)
 
       let result: Uint8Array
 
@@ -43,12 +69,16 @@ function App() {
           result = wasmModule.apply_blur(rawPixels, params?.radius || 5)
           break
         default:
-          console.warn('Unknown filter:', filterType)
+          logger.warn('Unknown filter type', { filterType })
           return
       }
 
       const elapsed = performance.now() - start
-      console.log(`Filter ${filterType} applied in ${elapsed.toFixed(2)}ms`)
+      logger.info('Filter applied successfully', {
+        action: 'FILTER_COMPLETE',
+        filterType,
+        duration: elapsed,
+      })
 
       // Create new ImageData from result
       const newImageData = new ImageData(
@@ -59,7 +89,17 @@ function App() {
 
       setProcessedImage(newImageData)
     } catch (err) {
-      console.error('Filter error:', err)
+      logger.error('Filter apply failed', {
+        action: 'FILTER_ERROR',
+        filterType,
+        params,
+        error: err instanceof Error ? err.message : String(err),
+        imageInfo: {
+          width: image.width,
+          height: image.height,
+          size: image.data.length,
+        },
+      })
     }
   }
 

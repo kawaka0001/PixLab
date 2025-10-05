@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import logger from '../utils/logger'
 
 interface WasmModule {
   greet: (name: string) => string
@@ -22,7 +23,9 @@ export function useWasm(): UseWasmResult {
 
     async function loadWasm() {
       try {
-        console.log('Loading WASM module...')
+        logger.info('Loading WASM module...', {
+          action: 'WASM_LOAD_START',
+        })
 
         // Dynamic import of WASM module
         // Import both the init function and the module
@@ -31,14 +34,19 @@ export function useWasm(): UseWasmResult {
         // Initialize WASM (this is crucial!)
         await wasmModule.default()
 
-        console.log('WASM module initialized successfully!')
+        logger.info('WASM module initialized successfully!', {
+          action: 'WASM_LOAD_COMPLETE',
+        })
 
         if (mounted) {
           setWasmModule(wasmModule as unknown as WasmModule)
           setIsLoading(false)
         }
       } catch (err) {
-        console.error('Failed to load WASM module:', err)
+        logger.error('Failed to load WASM module', {
+          action: 'WASM_LOAD_ERROR',
+          error: err instanceof Error ? err.message : String(err),
+        })
         if (mounted) {
           setError(err as Error)
           setIsLoading(false)
