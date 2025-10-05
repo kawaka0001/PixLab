@@ -28,6 +28,7 @@ function App() {
   const [filters, setFilters] = useState<FilterState>(initialFilterState)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [cropMode, setCropMode] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (wasmModule) {
@@ -144,6 +145,10 @@ function App() {
     const url = window.location.href
     navigator.clipboard.writeText(url)
     logger.info('Room URL copied to clipboard', { action: 'COPY_ROOM_URL', url })
+
+    // Show feedback for 2 seconds
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   // Filter Pipeline: Apply multiple filters in sequence
@@ -287,10 +292,14 @@ function App() {
 
             <button
               onClick={handleCopyRoomUrl}
-              className="px-3 py-2 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg transition-colors text-sm font-medium"
-              title="共有URLをコピー"
+              className={`px-3 py-2 rounded-lg transition-all text-sm font-medium ${
+                copied
+                  ? 'bg-green-500/20 text-green-400'
+                  : 'bg-accent/20 hover:bg-accent/30 text-accent'
+              }`}
+              title={copied ? 'URLをコピーしました！' : '共有URLをコピー'}
             >
-              🔗 共有
+              {copied ? '✓ コピー完了！' : '🔗 共有'}
             </button>
 
             <div className="text-xs text-gray-500">
